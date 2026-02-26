@@ -139,6 +139,68 @@ describe("Payment", () => {
       });
       expect(result.sessionToken).toBe("tok_123");
       expect(result.amount).toBe("25.00");
+      expect(Chainrails.config).toHaveBeenCalledWith({
+        seesion_token: "tok_123",
+      });
+    });
+  });
+
+  describe("receive", () => {
+    it("routes react platform to modal opener", async () => {
+      const openSpy = vi
+        .spyOn(
+          payment as unknown as {
+            openReactReceiveModal: (input: {
+              sessionToken: string;
+              amount?: string;
+            }) => Promise<void>;
+          },
+          "openReactReceiveModal"
+        )
+        .mockResolvedValue(undefined);
+
+      await payment.receive({
+        sessionToken: "tok_123",
+        amount: "25.00",
+        platform: "react",
+      });
+
+      expect(openSpy).toHaveBeenCalledWith({
+        sessionToken: "tok_123",
+        amount: "25.00",
+      });
+    });
+
+    it("routes vanilla platform to modal opener", async () => {
+      const openSpy = vi
+        .spyOn(
+          payment as unknown as {
+            openVanillaReceiveModal: (input: {
+              sessionToken: string;
+              amount?: string;
+            }) => Promise<void>;
+          },
+          "openVanillaReceiveModal"
+        )
+        .mockResolvedValue(undefined);
+
+      await payment.receive({
+        sessionToken: "tok_123",
+        platform: "vanilla",
+      });
+
+      expect(openSpy).toHaveBeenCalledWith({
+        sessionToken: "tok_123",
+      });
+    });
+
+    it("throws for unsupported platforms", async () => {
+      await expect(
+        payment.receive({
+          sessionToken: "tok_123",
+          platform: "react-native",
+        })
+      ).rejects.toThrow(/not implemented/i);
     });
   });
 
