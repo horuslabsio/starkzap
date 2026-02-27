@@ -55,7 +55,7 @@ async function openSaveMeCheckout(): Promise<boolean> {
     .payment()
     .modal({
       type: "token",
-      platform: "vanilla",
+      platform: "web",
       sessionToken,
       amount,
     })
