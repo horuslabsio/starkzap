@@ -22,6 +22,7 @@ export default defineConfig(
       "docs/api/**",
       "docs/export/**",
       "examples/flappy-bird/**",
+      "examples/infinite-flappy-bird/**",
       "examples/mobile/eslint.config.js",
       "examples/mobile/metro.config.js",
     ],
