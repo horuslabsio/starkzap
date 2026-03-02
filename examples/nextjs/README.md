@@ -1,6 +1,6 @@
-# Chainrails Next.js Demo
+# Starkzap Next.js Demo
 
-A minimal, production-ready Next.js demo for Chainrails payment integration.
+A minimal, production-ready Next.js demo for Starkzap payment integration powered by Chainrails.
 
 ## Quick Start
 
@@ -47,16 +47,16 @@ src/
 ## How It Works
 
 1. **Frontend**: User clicks "Open Payment Modal" button
-2. **API Route**: `/api/create-session` creates a Chainrails session token
+2. **API Route**: `/api/create-session` creates a Chainrails session token using Starkzap SDK
 3. **Payment Modal**: Initializes with the session and accepts payment
 4. **Callbacks**: Handles success/cancel events
 
 ## Configuration
 
-Update these values in `src/components/PaymentPage.tsx`:
+Update these values in `src/app/page.tsx`:
 
-- `destinationChain`: The blockchain to receive payments on (e.g., `chains.BASE`)
-- `token`: The token you want to receive (e.g., `tokens.USDC`)
+- `destinationChain`: The blockchain to receive payments on (e.g., `PaymentChains.BASE`)
+- `token`: The token you want to receive (e.g., `PaymentTokenSymbols.USDC`)
 - `recipient`: Your wallet address to receive funds
 - `amount`: Fixed amount or 0 for user input
 
@@ -69,5 +69,6 @@ npm start
 
 ## Documentation
 
+- [Starkzap SDK Reference](https://docs.starkzap.com)
 - [Chainrails SDK Reference](https://docs.chainrails.io/sdk-reference/introduction)
 - [Chainrails API Reference](https://docs.chainrails.io/api-reference/introduction)

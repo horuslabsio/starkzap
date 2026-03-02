@@ -1,27 +1,25 @@
-import { Chainrails, crapi } from "@chainrails/sdk";
+import { StarkSDK, PaymentChains, PaymentTokenSymbols } from "starkzap";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const { destinationChain, token, amount, recipient } = await request.json();
 
-    console.log({
-      amount,
-      recipient,
-      destinationChain,
-      token,
+    const sdk = new StarkSDK({
+      network: "mainnet",
+      payment: {
+        apiKey: process.env.CHAINRAILS_API_KEY || "",
+        environment: "production",
+      },
     });
 
-    Chainrails.config({
-      api_key: process.env.CHAINRAILS_API_KEY || "",
-      env: "production",
-    });
+    const payment = sdk.payment();
 
-    const session = await crapi.auth.getSessionToken({
+    const session = await payment.createSession({
       amount,
       recipient,
-      destinationChain,
-      token,
+      destinationChain: destinationChain || PaymentChains.STARKNET,
+      token: token || PaymentTokenSymbols.USDC,
     });
 
     return NextResponse.json(session);

@@ -1,21 +1,22 @@
 "use client";
 
-import {
-  chains,
-  PaymentModal,
-  tokens,
-  usePaymentModal,
-} from "@chainrails/react";
+import { useState } from "react";
+import { PaymentChains, PaymentTokenSymbols, StarkSDK } from "starkzap";
 import ArrowDownIcon from "../icons/ArrowDown";
 import CheckIcon from "../icons/Check";
 import NGFlagIcon from "../icons/NGFlag";
-import { useState } from "react";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
-  const cr = usePaymentModal({
-    sessionToken: null,
+  // Initialize SDK and payment modal
+  const sdk = new StarkSDK({
+    network: "mainnet",
+    payment: {
+      apiKey: process.env.NEXT_PUBLIC_CHAINRAILS_API_KEY || "",
+      environment: "production",
+    },
   });
+  const payment = sdk.payment();
 
   async function pay() {
     setLoading(true);
@@ -25,16 +26,25 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          destinationChain: chains.BASE,
-          token: tokens.USDC,
-          recipient: "0x4F41BCf288E718A36c1e6919c2Dfc2E07d51c675",
-          amount: "9.89",
+          destinationChain: PaymentChains.STARKNET,
+          token: PaymentTokenSymbols.USDC,
+          recipient:
+            "0x0075597a61229d143Ffba493C9f8A8057ecCeeA7BFDDBFD8Aaf79AC8935205c0",
+          amount: "0.99",
         }),
       }
     );
     const data = await response.json();
-    cr.updateSession(data);
-    cr.open();
+
+    const paid = await payment
+      .modal({
+        sessionToken: data.sessionToken,
+        amount: "0.99",
+      })
+      .pay();
+
+    console.log(paid ? "Payment Successful" : "Payment Failed");
+
     setLoading(false);
   }
 
@@ -296,8 +306,6 @@ export default function Home() {
           </div>
         </form>
       </section>
-
-      <PaymentModal {...cr} />
     </>
   );
 }
