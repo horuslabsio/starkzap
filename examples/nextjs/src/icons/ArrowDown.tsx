@@ -9,7 +9,13 @@ export default function ArrowDownIcon() {
       fill="none"
       viewBox="0 0 24 24"
     >
-      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7" />
+      <path
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="m19 9-7 7-7-7"
+      />
     </svg>
   );
 }

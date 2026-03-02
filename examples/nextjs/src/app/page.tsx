@@ -1,6 +1,11 @@
 "use client";
 
-import { chains, PaymentModal, tokens, usePaymentModal } from "@chainrails/react";
+import {
+  chains,
+  PaymentModal,
+  tokens,
+  usePaymentModal,
+} from "@chainrails/react";
 import ArrowDownIcon from "../icons/ArrowDown";
 import CheckIcon from "../icons/Check";
 import NGFlagIcon from "../icons/NGFlag";
@@ -14,16 +19,19 @@ export default function Home() {
 
   async function pay() {
     setLoading(true);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/create-session`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        destinationChain: chains.BASE,
-        token: tokens.USDC,
-        recipient: "0x4F41BCf288E718A36c1e6919c2Dfc2E07d51c675",
-        amount: "9.89",
-      }),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/create-session`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          destinationChain: chains.BASE,
+          token: tokens.USDC,
+          recipient: "0x4F41BCf288E718A36c1e6919c2Dfc2E07d51c675",
+          amount: "9.89",
+        }),
+      }
+    );
     const data = await response.json();
     cr.updateSession(data);
     cr.open();
@@ -58,11 +66,16 @@ export default function Home() {
           <div className="mt-6 sm:mt-20 lg:flex lg:items-start lg:gap-12 xl:gap-16 w-max">
             <div className="space-y-8 2 w-max">
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-gray-900">Delivery Details</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Delivery Details
+                </h2>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="your_name" className="mb-2 block text-sm font-medium text-gray-900">
+                    <label
+                      htmlFor="your_name"
+                      className="mb-2 block text-sm font-medium text-gray-900"
+                    >
                       Your name
                     </label>
                     <input
@@ -75,7 +88,10 @@ export default function Home() {
                   </div>
 
                   <div>
-                    <label htmlFor="your_email" className="mb-2 block text-sm font-medium text-gray-900">
+                    <label
+                      htmlFor="your_email"
+                      className="mb-2 block text-sm font-medium text-gray-900"
+                    >
                       Your email*
                     </label>
                     <input
@@ -89,7 +105,10 @@ export default function Home() {
 
                   <div>
                     <div className="mb-2 flex items-center gap-2">
-                      <label htmlFor="select-city-input-3" className="block text-sm font-medium text-gray-900">
+                      <label
+                        htmlFor="select-city-input-3"
+                        className="block text-sm font-medium text-gray-900"
+                      >
                         City*
                       </label>
                     </div>
@@ -107,7 +126,10 @@ export default function Home() {
                   </div>
 
                   <div>
-                    <label htmlFor="phone-input-3" className="mb-2 block text-sm font-medium text-gray-900">
+                    <label
+                      htmlFor="phone-input-3"
+                      className="mb-2 block text-sm font-medium text-gray-900"
+                    >
                       Phone Number*
                     </label>
                     <div className="flex items-center">
@@ -155,10 +177,16 @@ export default function Home() {
                       </div>
 
                       <div className="ms-4 text-sm">
-                        <label htmlFor="credit-card" className="font-medium leading-none text-black">
+                        <label
+                          htmlFor="credit-card"
+                          className="font-medium leading-none text-black"
+                        >
                           Chainrails
                         </label>
-                        <p id="credit-card-text" className="mt-1 text-xs font-normal text-gray-700">
+                        <p
+                          id="credit-card-text"
+                          className="mt-1 text-xs font-normal text-gray-700"
+                        >
                           Pay with your crypto
                         </p>
                       </div>
@@ -179,10 +207,16 @@ export default function Home() {
                       </div>
 
                       <div className="ms-4 text-sm">
-                        <label htmlFor="pay-on-delivery" className="font-medium leading-none text-gray-900">
+                        <label
+                          htmlFor="pay-on-delivery"
+                          className="font-medium leading-none text-gray-900"
+                        >
                           Payment on delivery
                         </label>
-                        <p id="pay-on-delivery-text" className="mt-1 text-xs font-normal text-gray-500">
+                        <p
+                          id="pay-on-delivery-text"
+                          className="mt-1 text-xs font-normal text-gray-500"
+                        >
                           +$15 payment processing fee
                         </p>
                       </div>
@@ -203,10 +237,16 @@ export default function Home() {
                       </div>
 
                       <div className="ms-4 text-sm">
-                        <label htmlFor="paypal-2" className="font-medium leading-none text-gray-900">
+                        <label
+                          htmlFor="paypal-2"
+                          className="font-medium leading-none text-gray-900"
+                        >
                           Paypal account
                         </label>
-                        <p id="paypal-text" className="mt-1 text-xs font-normal text-gray-500">
+                        <p
+                          id="paypal-text"
+                          className="mt-1 text-xs font-normal text-gray-500"
+                        >
                           Connect to your account
                         </p>
                       </div>
@@ -220,13 +260,19 @@ export default function Home() {
               <div className="flow-root">
                 <div className="-my-3 divide-y divide-gray-200">
                   <dl className="flex items-center justify-between gap-4 py-3">
-                    <dt className="text-base font-normal text-gray-500">Subtotal</dt>
-                    <dd className="text-base font-medium text-gray-900">$9.49</dd>
+                    <dt className="text-base font-normal text-gray-500">
+                      Subtotal
+                    </dt>
+                    <dd className="text-base font-medium text-gray-900">
+                      $9.49
+                    </dd>
                   </dl>
 
                   <dl className="flex items-center justify-between gap-4 py-3">
                     <dt className="text-base font-normal text-gray-500">VAT</dt>
-                    <dd className="text-base font-medium text-gray-900">$0.40</dd>
+                    <dd className="text-base font-medium text-gray-900">
+                      $0.40
+                    </dd>
                   </dl>
 
                   <dl className="flex items-center justify-between gap-4 py-3">
