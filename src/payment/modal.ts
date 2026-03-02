@@ -1,6 +1,5 @@
 import type { PaymentModalHandle, PaymentModalInput } from "@/payment/types";
 import { ChainrailsPaymentModalElement } from "@chainrails/vanilla";
-import { openPaymentModal as openRnPaymentModal } from "@chainrails/react-native";
 
 export class PaymentModalManager {
   private activeModalCleanup: (() => void) | null = null;
@@ -31,11 +30,8 @@ export class PaymentModalManager {
     }
   }
 
-  private async payMobile(input: PaymentModalInput): Promise<boolean> {
-    return openRnPaymentModal({
-      sessionToken: input.sessionToken,
-      amount: input.amount,
-    });
+  private async payMobile(_: PaymentModalInput): Promise<boolean> {
+    throw new Error("Mobile Payments not supported yet.");
   }
 
   private async payVanillaToken(input: PaymentModalInput): Promise<boolean> {
