@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import fs from "fs";
 import { PrivyClient } from "@privy-io/node";
-import { PaymentChains, PaymentTokenSymbols, StarkSDK } from "starkzap";
+import { PaymentChains, PaymentTokenSymbols, StarkZap } from "starkzap";
 
 const PRIVY_APP_ID = process.env.PRIVY_APP_ID!;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET!;
@@ -28,9 +28,9 @@ const privy = new PrivyClient({
   appSecret: PRIVY_APP_SECRET,
 });
 
-let starkzap: StarkSDK | null = null;
+let starkzap: StarkZap | null = null;
 if (CHAINRAILS_API_KEY) {
-  starkzap = new StarkSDK({
+  starkzap = new StarkZap({
     network: "mainnet",
     payment: {
       apiKey: CHAINRAILS_API_KEY,

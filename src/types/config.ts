@@ -212,7 +212,7 @@ export interface SDKConfig {
    *
    * @example
    * ```ts
-   * const sdk = new StarkSDK({
+   * const sdk = new StarkZap({
    *   network: "mainnet",
    *   payment: {
    *     apiKey: "cr_live_...",

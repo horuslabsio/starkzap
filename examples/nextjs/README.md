@@ -16,7 +16,7 @@ Create a `.env.local` file in the root directory:
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:3000
-CHAINRAILS_API_KEY=your_api_key_here
+NEXT_PUBLIC_CHAINRAILS_API_KEY=your_api_key_here
 ```
 
 ### 3. Run the Demo

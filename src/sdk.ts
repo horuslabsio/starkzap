@@ -486,7 +486,7 @@ export class StarkZap {
    *
    * @example
    * ```ts
-   * const sdk = new StarkSDK({
+   * const sdk = new StarkZap({
    *   network: "mainnet",
    *   payment: { apiKey: "cr_live_..." },
    * });
@@ -511,7 +511,7 @@ export class StarkZap {
         return new Payment({ apiKey: "" });
       }
       throw new Error(
-        "Payment is not configured. Provide a `payment` config with an `apiKey` when creating StarkSDK."
+        "Payment is not configured. Provide a `payment` config with an `apiKey` when creating StarkZap."
       );
     }
     return new Payment(this.config.payment);

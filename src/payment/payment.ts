@@ -6,9 +6,9 @@
  *
  * @example
  * ```ts
- * import { StarkSDK } from "starkzap";
+ * import { StarkZap } from "starkzap";
  *
- * const sdk = new StarkSDK({
+ * const sdk = new StarkZap({
  *   network: "mainnet",
  *   payment: { apiKey: "cr_live_..." },
  * });

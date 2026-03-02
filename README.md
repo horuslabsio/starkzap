@@ -78,7 +78,7 @@ For onboarding flows (Privy, Cartridge, etc.) and more examples, see the [Quick 
 - In **browser runtimes**, calling `sdk.payment()` without `payment` config does not throw.
 - In **non-browser runtimes** (Node/server), calling `sdk.payment()` without `payment` config throws: `Payment is not configured...`
 
-For server-based payment flows, pass `payment: { apiKey: "..." }` when creating `StarkSDK`.
+For server-based payment flows, pass `payment: { apiKey: "..." }` when creating `StarkZap`.
 
 ---
 

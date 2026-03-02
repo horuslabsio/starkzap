@@ -5,7 +5,7 @@
  * Uses only: StarkZap (via ./starknet), DOM APIs, and game assets (jQuery, buzz, main.js).
  * Includes Save Me payment modal.
  */
-import { StarkSDK, networks } from "starkzap";
+import { StarkZap, networks } from "starkzap";
 import * as starknet from "./starknet";
 
 // Save Me payment modal elements
@@ -29,7 +29,7 @@ function resetSaveMeButton(): void {
 }
 
 async function openSaveMeCheckout(): Promise<boolean> {
-  // An endpoint that uses starkSDK serverside to generate a session_url
+  // An endpoint that uses StarkZap serverside to generate a session_url
   const CHAINRAILS_SESSION_URL =
     env.VITE_CHAINRAILS_SESSION_URL ??
     "https://chainrails-sdk-server-nu.vercel.app/session?amount=0.1&destinationChain=STARKNET&recipient=0x0075597a61229d143Ffba493C9f8A8057ecCeeA7BFDDBFD8Aaf79AC8935205c0";
@@ -47,7 +47,7 @@ async function openSaveMeCheckout(): Promise<boolean> {
     throw new Error("Session payload is missing a valid sessionToken.");
   }
 
-  const sdk = new StarkSDK({
+  const sdk = new StarkZap({
     network: "mainnet",
   });
 

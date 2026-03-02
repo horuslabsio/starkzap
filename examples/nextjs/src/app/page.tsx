@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PaymentChains, PaymentTokenSymbols, StarkSDK } from "starkzap";
+import { PaymentChains, PaymentTokenSymbols, StarkZap } from "starkzap";
 import ArrowDownIcon from "../icons/ArrowDown";
 import CheckIcon from "../icons/Check";
 import NGFlagIcon from "../icons/NGFlag";
@@ -9,12 +9,8 @@ import NGFlagIcon from "../icons/NGFlag";
 export default function Home() {
   const [loading, setLoading] = useState(false);
   // Initialize SDK and payment modal
-  const sdk = new StarkSDK({
+  const sdk = new StarkZap({
     network: "mainnet",
-    payment: {
-      apiKey: process.env.NEXT_PUBLIC_CHAINRAILS_API_KEY || "",
-      environment: "production",
-    },
   });
   const payment = sdk.payment();
 

@@ -467,12 +467,12 @@ describe("Payment", () => {
 
 // ─── SDK integration ────────────────────────────────────────────────────────
 
-describe("StarkSDK.payment()", () => {
+describe("StarkZap.payment()", () => {
   it("throws when payment config is missing in non-browser runtimes", async () => {
     // Dynamically import to avoid circular issues
-    const { StarkSDK } = await import("@/sdk");
+    const { StarkZap } = await import("@/sdk");
 
-    const sdk = new StarkSDK({ network: "mainnet" });
+    const sdk = new StarkZap({ network: "mainnet" });
 
     expect(() => sdk.payment()).toThrow(/Payment is not configured/);
   });
@@ -481,8 +481,8 @@ describe("StarkSDK.payment()", () => {
     vi.stubGlobal("window", {});
     vi.stubGlobal("document", { createElement: () => ({}) });
 
-    const { StarkSDK } = await import("@/sdk");
-    const sdk = new StarkSDK({ network: "mainnet" });
+    const { StarkZap } = await import("@/sdk");
+    const sdk = new StarkZap({ network: "mainnet" });
 
     expect(() => sdk.payment()).not.toThrow();
 
@@ -490,9 +490,9 @@ describe("StarkSDK.payment()", () => {
   });
 
   it("returns a Payment instance when configured", async () => {
-    const { StarkSDK } = await import("@/sdk");
+    const { StarkZap } = await import("@/sdk");
 
-    const sdk = new StarkSDK({
+    const sdk = new StarkZap({
       network: "mainnet",
       payment: { apiKey: "cr_test_key" },
     });

@@ -1,11 +1,11 @@
-import { StarkSDK, PaymentChains, PaymentTokenSymbols } from "starkzap";
+import { StarkZap, PaymentChains, PaymentTokenSymbols } from "starkzap";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const { destinationChain, token, amount, recipient } = await request.json();
 
-    const sdk = new StarkSDK({
+    const sdk = new StarkZap({
       network: "mainnet",
       payment: {
         apiKey: process.env.CHAINRAILS_API_KEY || "",
