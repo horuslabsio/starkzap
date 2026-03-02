@@ -150,25 +150,13 @@ export class Payment {
     const platform = input.platform ?? "web";
 
     const handle: PaymentModalHandle = {
-      type: input.type,
       platform,
+      sessionToken: input.sessionToken,
       pay: async () => {
-        if (platform === "mobile") {
-          throw new Error(
-            `payment.modal is not implemented for platform "${platform}" yet. Use "web".`
-          );
-        }
-
         const modalManager = await this.getModalManager();
         return modalManager.modal({ ...input, platform }).pay();
       },
     };
-
-    if (input.type === "token") {
-      handle.sessionToken = input.sessionToken;
-    } else {
-      handle.sessionUrl = input.sessionUrl;
-    }
 
     if (input.amount !== undefined) {
       handle.amount = input.amount;

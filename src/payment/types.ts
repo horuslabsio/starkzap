@@ -97,33 +97,17 @@ export interface PaymentConfig {
 /** Supported payment modal platforms. */
 export type PaymentModalPlatform = "web" | "mobile";
 
-/** Open modal by session URL. */
-export interface PaymentModalSessionInput {
-  type: "session";
-  sessionUrl: string;
-  amount?: string;
-  platform?: PaymentModalPlatform;
-}
-
-/** Open modal by session token. */
-export interface PaymentModalTokenInput {
-  type: "token";
+/** Input for creating a payment modal flow. */
+export interface PaymentModalInput {
   sessionToken: string;
   amount?: string;
   platform?: PaymentModalPlatform;
 }
 
-/** Input for creating a payment modal flow. */
-export type PaymentModalInput =
-  | PaymentModalSessionInput
-  | PaymentModalTokenInput;
-
 /** Returned modal handle with a one-call payment trigger. */
 export interface PaymentModalHandle {
-  type: PaymentModalInput["type"];
   platform: PaymentModalPlatform;
-  sessionToken?: string;
-  sessionUrl?: string;
+  sessionToken: string;
   amount?: string;
   pay: () => Promise<boolean>;
 }

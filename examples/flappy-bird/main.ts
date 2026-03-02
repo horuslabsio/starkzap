@@ -56,7 +56,6 @@ async function openSaveMeCheckout(): Promise<boolean> {
   return sdk
     .payment()
     .modal({
-      type: "token",
       platform: "web",
       sessionToken,
       amount,
