@@ -12,7 +12,7 @@ import {
   Contract,
   type WalletInterface,
 } from "starkzap";
-import { Contract, getChecksumAddress, type RpcProvider } from "starknet";
+import { Contract as StarknetContract, getChecksumAddress, type RpcProvider } from "starknet";
 
 // FOS demo game contract on Sepolia (same as https://github.com/0xsisyfos/fos)
 // Checksummed address so execute() calls match Cartridge session policies (Controller normalizes policy targets with getChecksumAddress).
@@ -180,8 +180,8 @@ export async function endGame(): Promise<void> {
   });
 }
 
-function getGameContract(provider: RpcProvider): Contract {
-  return new Contract({
+function getGameContract(provider: RpcProvider): StarknetContract {
+  return new StarknetContract({
     abi: GAME_ABI,
     address: GAME_CONTRACT,
     providerOrAccount: provider,
