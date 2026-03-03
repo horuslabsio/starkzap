@@ -1,5 +1,5 @@
 /**
- * Payment module — cross-chain, multi-token payment acceptance via ChainRails.
+ * Payment module — cross-chain, multi-token payment acceptance via Chainrails.
  *
  * Provides quote discovery, intent lifecycle management, bridge routing,
  * chain/balance queries, session-based payment flows, and merchant info.
@@ -80,7 +80,7 @@ import type {
 } from "@/payment/types";
 
 /**
- * Cross-chain payment module powered by ChainRails.
+ * Cross-chain payment module powered by Chainrails.
  *
  * Accept payments from any chain, any token (EVM + Starknet), with automatic
  * bridge routing, fee quoting, and intent-based settlement.
@@ -223,7 +223,7 @@ export class Payment {
    * Create a payment intent.
    *
    * An intent represents a concrete payment: sender deposits on the source
-   * chain, and ChainRails settles the destination amount automatically.
+   * chain, and Chainrails settles the destination amount automatically.
    */
   async createIntent(input: CreatePaymentIntentInput): Promise<PaymentIntent> {
     return crapi.intents.create(input);
@@ -317,7 +317,7 @@ export class Payment {
   }
 
   /**
-   * Get all bridge protocols supported by ChainRails.
+   * Get all bridge protocols supported by Chainrails.
    */
   async getAllSupportedBridges(): Promise<GetAllSupportedBridgesOutput> {
     return crapi.router.getAllSupportedBridges();

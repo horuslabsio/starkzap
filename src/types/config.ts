@@ -204,7 +204,7 @@ export interface SDKConfig {
   staking?: StakingConfig;
 
   /**
-   * Optional: configuration for the Payment module (ChainRails).
+   * Optional: configuration for the Payment module (Chainrails).
    *
    * Enables cross-chain, multi-token payment acceptance.
    * Payments can originate from any supported chain/token and

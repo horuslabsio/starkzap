@@ -1,7 +1,3 @@
-/**
- * Types for the Payment module (ChainRails-powered cross-chain payments).
- */
-
 import { AmountSymbols, Bridges, Chains } from "@chainrails/sdk";
 import type {
   Bridge,
@@ -21,7 +17,7 @@ type AsyncResult<T extends (...args: never[]) => unknown> = Awaited<
 
 // ─── Environment ───────────────────────────────
 
-/** ChainRails API environment. */
+/** Chainrails API environment. */
 export type PaymentEnvironment = "production" | "staging";
 
 // ─── Chains ────────────────────────────────────
@@ -32,7 +28,7 @@ export const PaymentChains = Chains;
 /** A supported chain alias (e.g. `"STARKNET"`, `"BASE"`). */
 export type PaymentChain = Chain;
 
-/** Internal chain identifier used by ChainRails API. */
+/** Internal chain identifier used by Chainrails API. */
 export type InternalPaymentChain = PaymentIntent["source_chain"];
 
 /** Chain type (EVM or Starknet). */
@@ -86,7 +82,7 @@ export type PaymentIntentStatus = Status;
  * ```
  */
 export interface PaymentConfig {
-  /** ChainRails API key. */
+  /** Chainrails API key. */
   apiKey: string;
   /** API environment – defaults to `"production"`. */
   environment?: PaymentEnvironment;

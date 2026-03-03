@@ -71,7 +71,7 @@ For onboarding flows (Privy, Cartridge, etc.) and more examples, see the [Quick 
 
 ---
 
-## Payment (ChainRails)
+## Payment (Chainrails)
 
 `sdk.payment()` uses the SDK `payment` config when provided.
 
