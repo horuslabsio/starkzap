@@ -1,8 +1,10 @@
 {
+  "name": "starkzap-example-server",
   "type": "module",
+  "private": true,
   "scripts": {
-    "postinstall": "cd ../.. && npm run build",
-    "start": "node server.ts"
+    "start": "node --import tsx server.ts",
+    "postinstall": "cd ../.. && npm run build"
   },
   "dependencies": {
     "@privy-io/node": "^0.8.0",
