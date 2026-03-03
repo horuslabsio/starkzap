@@ -12,7 +12,6 @@ import {
   Contract,
   type WalletInterface,
 } from "starkzap";
-import { Contract as StarknetContract, getChecksumAddress, type RpcProvider } from "starknet";
 import { getChecksumAddress, type RpcProvider } from "starknet";
 
 // FOS demo game contract on Sepolia (same as https://github.com/0xsisyfos/fos)
@@ -181,8 +180,8 @@ export async function endGame(): Promise<void> {
   });
 }
 
-function getGameContract(provider: RpcProvider): StarknetContract {
-  return new StarknetContract({
+function getGameContract(provider: RpcProvider): Contract {
+  return new Contract({
     abi: GAME_ABI,
     address: GAME_CONTRACT,
     providerOrAccount: provider,
