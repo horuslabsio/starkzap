@@ -69,6 +69,6 @@ npm start
 
 ## Documentation
 
-- [Starkzap SDK Reference](https://docs.starkzap.com)
+- [Starkzap SDK Reference](https://docs.starknet.io/build/starkzap)
 - [Chainrails SDK Reference](https://docs.chainrails.io/sdk-reference/introduction)
 - [Chainrails API Reference](https://docs.chainrails.io/api-reference/introduction)
