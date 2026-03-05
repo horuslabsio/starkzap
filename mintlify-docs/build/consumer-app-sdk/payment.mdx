@@ -413,14 +413,29 @@ const info = await payment.getSessionClientInfo();
 console.log(info);  // Client info for the current session context
 ```
 
-## Complete Example: Checkout Flow
+## Complete Integration Guide
 
-Here's a complete example of implementing a checkout flow:
+This guide walks you through implementing Chainrails payments in a real application. We'll build a checkout flow where:
+- **Server**: Creates the payment session (secure, protects API key)
+- **Client**: Opens the payment modal for the user to complete payment
+
+### Prerequisites
+
+1. A Chainrails account — sign up at [dashboard.chainrails.io](https://dashboard.chainrails.io)
+2. Your Chainrails API key (starts with `cr_live_` for production)
+3. Starkzap SDK installed: `npm install starkzap`
+
+---
+
+### Step 1: Server-Side — Initialize SDK and Create Payment Session
+
+**File: `src/payment/server.ts`** (Your backend)
+
+This creates a secure, one-time session token that the client uses to open the payment modal. The API key stays on the server.
 
 ```typescript
 import { StarkZap, PaymentChains, PaymentTokenSymbols } from "starkzap";
 
-// Initialize SDK
 const sdk = new StarkZap({
   network: "mainnet",
   payment: {
@@ -430,59 +445,95 @@ const sdk = new StarkZap({
 
 const payment = sdk.payment();
 
-// 1. Create a payment session for a specific amount
-async function createPaymentSession(recipient: string, amount: string) {
+export async function createPaymentSession(recipient: string, amount: string) {
   const session = await payment.createSession({
     recipient,
     token: PaymentTokenSymbols.USDC,
     destinationChain: PaymentChains.STARKNET,
     amount,
   });
+
+  console.log("Session created:", session.sessionToken);
   
   return session;
 }
+```
 
-// 2. Create a payment modal
-async function openPaymentModal(sessionToken: string, amount: string) {
+**Parameters:**
+- `recipient` — Your wallet address on Starknet to receive funds
+- `amount` — Payment amount in USD
+- `returns` — sessionToken (and amount) to pass to client for modal
+
+---
+
+### Step 2: Client-Side — Open Payment Modal
+
+**File: `src/components/CheckoutButton.tsx`** (Your frontend)
+
+This is what the user interacts with:
+1. Modal opens showing payment options
+2. User selects payment method (crypto)
+3. User selects source chain and token
+4. User completes the cross-chain transfer
+5. Modal closes and returns success/failure
+
+Note: We do NOT include the payment API key here! The client only needs the session token from your server.
+
+```typescript
+import { StarkZap } from "starkzap";
+
+const sdk = new StarkZap({
+  network: "mainnet",
+});
+
+const payment = sdk.payment();
+
+export async function openPaymentModal(sessionToken: string, amount: string) {
   const modal = payment.modal({
     sessionToken,
     amount,
     platform: "web",
   });
-  
+
   const success = await modal.pay();
+
   return success;
 }
-
-// 3. Check payment status
-async function checkPaymentStatus(intentId: string) {
-  const intent = await payment.getIntent(intentId);
-  return intent.intent_status;
-}
-
-// Usage in your checkout
-async function handleCheckout() {
-  const recipient = "0xYourWallet...";
-  const amount = "25.00";
-  
-  // Create session
-  const session = await createPaymentSession(recipient, amount);
-  
-  // Open modal
-  const success = await openPaymentModal(session.sessionToken, amount);
-  
-  if (success) {
-    console.log("Payment successful!");
-    // Check status after a short delay
-    setTimeout(async () => {
-      const status = await checkPaymentStatus(session.sessionToken);
-      console.log("Intent status:", status);
-    }, 5000);
-  } else {
-    console.log("Payment cancelled");
-  }
-}
 ```
+
+**Parameters:**
+- `sessionToken` — Token from your server's /api/payment/session
+- `amount` — Amount to display in the modal
+
+---
+
+<Warning>
+**Never expose your Chainrails API key on the client!** Always create sessions server-side. The client only needs the `sessionToken` returned from your server.
+</Warning>
+
+---
+
+## Alternative: Direct Intent Creation (Advanced)
+
+If you need more control, you can create intents directly instead of using sessions. This gives you more control but requires building your own UI for the payment flow. The session + modal approach (shown above) is recommended for most use cases.
+
+```typescript
+const intent = await payment.createIntent({
+  sender: "0xsender...",
+  amount: "10",
+  tokenIn: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  amountSymbol: "USDC",
+  source_chain: "ETHEREUM",
+  destination_chain: "STARKNET",
+  recipient: "0xrecipient...",
+  refund_address: "0xsender...",
+});
+
+console.log("Intent Address:", intent.intent_address);
+```
+
+**Note:** Show the intent address to the user so they can send funds to it.
+
 
 ## Related Resources
 
