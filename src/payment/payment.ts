@@ -90,11 +90,25 @@ export class Payment {
     modal: (input: PaymentModalInput) => PaymentModalHandle;
   }> | null = null;
 
+  /** Stored session token from the most recent `createSession` call. */
+  private currentSessionToken: string | null = null;
+
   constructor(config: PaymentConfig) {
-    void Chainrails.config({
-      api_key: config.apiKey,
-      env: config.environment ?? "production",
-    });
+    // Only configure/reconfigure Chainrails if we have a valid API key.
+    if (config.apiKey) {
+      void Chainrails.config({
+        api_key: config.apiKey,
+        env: config.environment ?? "production",
+      });
+    }
+  }
+
+  getSessionToken(): string | null {
+    return this.currentSessionToken;
+  }
+
+  setSessionToken(sessionToken: string): void {
+    this.currentSessionToken = sessionToken;
   }
 
   private getModalManager(): Promise<{
@@ -136,6 +150,7 @@ export class Payment {
     input: CreatePaymentSessionInput
   ): Promise<PaymentSessionOutput> {
     const result = await crapi.auth.getSessionToken(input);
+    this.setSessionToken(result.sessionToken);
     return result;
   }
 

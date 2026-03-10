@@ -1,5 +1,4 @@
 import type { PaymentModalHandle, PaymentModalInput } from "@/payment/types";
-import { ChainrailsPaymentModalElement } from "@chainrails/vanilla";
 
 export class PaymentModalManager {
   private activeModalCleanup: (() => void) | null = null;
@@ -35,6 +34,10 @@ export class PaymentModalManager {
   }
 
   private async payVanillaToken(input: PaymentModalInput): Promise<boolean> {
+    // Only runs in a browser environment.
+    const { ChainrailsPaymentModalElement } =
+      await import("@chainrails/vanilla");
+
     return new Promise<boolean>((resolve) => {
       const modal = document.createElement(
         ChainrailsPaymentModalElement.tagName
