@@ -3,7 +3,6 @@ import type {
   Bridge,
   AmountSymbol,
   Chain,
-  Intent,
   Network,
   PaymentOption as ChainrailsPaymentOption,
   Quote,
@@ -29,7 +28,7 @@ export const PaymentChains = Chains;
 export type PaymentChain = Chain;
 
 /** Internal chain identifier used by Chainrails API. */
-export type InternalPaymentChain = PaymentIntent["source_chain"];
+export type InternalPaymentChain = PaymentIntent["sourceChain"];
 
 /** Chain type (EVM or Starknet). */
 export type PaymentChainType = NonNullable<GetChainBalanceInput["chainType"]>;
@@ -183,13 +182,79 @@ export type GetSessionQuotesOutput = AsyncResult<
 
 // ─── Intent types ──────────────────────────────
 
-/** A fully resolved payment intent. */
-export type PaymentIntent = Intent;
+/**
+ * Normalized payment intent with camelCase field names.
+ * Wraps the Chainrails Intent to provide SDK-native naming conventions.
+ */
+export interface PaymentIntent {
+  /** Unique intent identifier */
+  id: string;
+  /** On-chain intent contract address */
+  intentAddress: string;
+  /** Current intent status */
+  intentStatus:
+    | "PENDING"
+    | "FUNDED"
+    | "INITIATED"
+    | "COMPLETED"
+    | "EXPIRED"
+    | "REFUNDED";
+  /** Sender address on source chain */
+  sender: string;
+  /** Recipient address on destination chain */
+  recipient: string;
+  /** Token used for payment */
+  tokenIn: string;
+  /** Token symbol (e.g., "USDC") */
+  amountSymbol: string;
+  /** Payment amount */
+  amount: string;
+  /** Source chain */
+  sourceChain: string;
+  /** Destination chain */
+  destinationChain: string;
+  /** Address for refunds */
+  refundAddress: string;
+  /** Additional metadata */
+  metadata:
+    | {
+        description: string;
+        reference: string;
+      }
+    | undefined;
+  /** Timestamp when intent was created */
+  createdAt: string | undefined;
+  /** Timestamp when intent expires */
+  expiresAt: string | undefined;
+}
 
-/** Input for creating a payment intent. */
-export type CreatePaymentIntentInput = Parameters<
-  typeof crapi.intents.create
->[0];
+/**
+ * Input for creating a payment intent with camelCase field names.
+ * Normalizes Chainrails snake_case fields to SDK-native camelCase.
+ */
+export interface CreatePaymentIntentInput {
+  /** Sender address */
+  sender: `0x${string}`;
+  /** Payment amount */
+  amount: string;
+  /** Input token address */
+  tokenIn: `0x${string}`;
+  /** Token symbol (e.g., "USDC") */
+  amountSymbol: string;
+  /** Source chain */
+  sourceChain: string;
+  /** Destination chain */
+  destinationChain: string;
+  /** Recipient address on destination chain */
+  recipient: `0x${string}`;
+  /** Address for refunds */
+  refundAddress: `0x${string}`;
+  /** Additional metadata */
+  metadata: {
+    description: string;
+    reference: string;
+  };
+}
 
 /** Input for creating a session-based payment intent. */
 export type CreateSessionIntentInput = Parameters<

@@ -189,11 +189,11 @@ const quotes = await payment.getAllQuotes({
   recipient: "0xabc...",
 });
 
-// Returns quotes from multiple source chains
-console.log(quotes[0].sourceChain);      // "BASE_MAINNET"
-console.log(quotes[0].totalFee);         // "100000"
-console.log(quotes[0].bridge);           // "ACROSS"
-console.log(quotes[0].paymentOptions);   // [{ token: "USDC", fee: "..." }]
+// Returns object with quotes array and cheapest option
+console.log(quotes.quotes);                    // Quote[]
+console.log(quotes.cheapestOption);           // Quote (lowest fee)
+console.log(quotes.cheapestOption.sourceChain); // "BASE_MAINNET"
+console.log(quotes.cheapestOption.totalFee);   // "100000"
 ```
 
 ### Get Best Quote
@@ -210,8 +210,8 @@ const bestQuote = await payment.getBestQuote({
   recipient: "0xrecipient...",
 });
 
-console.log(bestQuote.totalFee);   // Lowest fee
-console.log(bestQuote.bridge);     // Best bridge for this route
+console.log(bestQuote.totalFee);              // Lowest fee
+console.log(bestQuote.route.bridge);          // Best bridge for this route (e.g., "ACROSS")
 ```
 
 ### Get Quotes from All Bridges
@@ -258,19 +258,19 @@ const intent = await payment.createIntent({
   amount: "10",
   tokenIn: "0xtokenIn...",
   amountSymbol: "USDC",
-  source_chain: "BASE",
-  destination_chain: "STARKNET",
+  sourceChain: "BASE",
+  destinationChain: "STARKNET",
   recipient: "0xrecipient...",
-  refund_address: "0xsender...",
+  refundAddress: "0xsender...",
   metadata: {
     description: "Order #42",
     reference: "order-42",
   },
 });
 
-console.log(intent.id);              // 1
-console.log(intent.intent_address);  // "0xintent..."
-console.log(intent.intent_status);   // "PENDING"
+console.log(intent.id);             // 1
+console.log(intent.intentAddress);  // "0xintent..."
+console.log(intent.intentStatus);   // "PENDING"
 ```
 
 ### Getting an Intent
@@ -320,11 +320,11 @@ const updated = await payment.updateIntentStatus(
 );
 
 // Common status checks
-if (intent.intent_status === "PENDING") {
+if (intent.intentStatus === "PENDING") {
   console.log("Waiting for user to fund...");
-} else if (intent.intent_status === "FUNDED") {
+} else if (intent.intentStatus === "FUNDED") {
   console.log("Deposit received, processing...");
-} else if (intent.intent_status === "COMPLETED") {
+} else if (intent.intentStatus === "COMPLETED") {
   console.log("Payment settled!");
 }
 ```
@@ -354,7 +354,8 @@ const bridges = await payment.getSupportedBridges({
   destinationChain: "STARKNET",
 });
 
-console.log(bridges);  // ["ACROSS", "RHINOFI", ...]
+console.log(bridges.supportedBridges);  // ["ACROSS", "RHINOFI", ...]
+console.log(bridges.routeInfo);         // { sourceChain, destinationChain, bridgeCount, isSupported }
 ```
 
 ### Get All Supported Bridges
@@ -401,9 +402,9 @@ Get merchant/client account information.
 ```typescript
 const info = await payment.getClientInfo();
 
-console.log(info.clientId);    // "client_..."
+console.log(info.id);         // "client_..."
 console.log(info.name);        // "Your Company"
-console.log(info.email);       // "billing@yourcompany.com"
+console.log(info.email);      // "billing@yourcompany.com"
 ```
 
 ### Get Session Client Info
@@ -523,13 +524,17 @@ const intent = await payment.createIntent({
   amount: "10",
   tokenIn: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   amountSymbol: "USDC",
-  source_chain: "ETHEREUM",
-  destination_chain: "STARKNET",
+  sourceChain: "ETHEREUM",
+  destinationChain: "STARKNET",
   recipient: "0xrecipient...",
-  refund_address: "0xsender...",
+  refundAddress: "0xsender...",
+  metadata: {
+    description: "Order #42",
+    reference: "order-42",
+  },
 });
 
-console.log("Intent Address:", intent.intent_address);
+console.log("Intent Address:", intent.intentAddress);
 ```
 
 **Note:** Show the intent address to the user so they can send funds to it.

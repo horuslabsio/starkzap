@@ -124,6 +124,47 @@ export class Payment {
   }
 
   // ══════════════════════════════════════════════
+  // Helper methods
+  // ══════════════════════════════════════════════
+
+  /**
+   * Normalize Chainrails snake_case intent to camelCase PaymentIntent.
+   */
+  private normalizeIntent(result: {
+    id: string;
+    intent_address: string;
+    intent_status: string;
+    sender: string;
+    recipient: string;
+    token_in: string;
+    amount_symbol: string;
+    amount: string;
+    source_chain: string;
+    destination_chain: string;
+    refund_address: string;
+    metadata?: { description: string; reference: string };
+    created_at?: string;
+    expires_at?: string;
+  }): PaymentIntent {
+    return {
+      id: result.id,
+      intentAddress: result.intent_address,
+      intentStatus: result.intent_status as PaymentIntent["intentStatus"],
+      sender: result.sender,
+      recipient: result.recipient,
+      tokenIn: result.token_in,
+      amountSymbol: result.amount_symbol,
+      amount: result.amount,
+      sourceChain: result.source_chain,
+      destinationChain: result.destination_chain,
+      refundAddress: result.refund_address,
+      metadata: result.metadata,
+      createdAt: result.created_at,
+      expiresAt: result.expires_at,
+    };
+  }
+
+  // ══════════════════════════════════════════════
   // Sessions / Auth
   // ══════════════════════════════════════════════
 
@@ -241,7 +282,49 @@ export class Payment {
    * chain, and Chainrails settles the destination amount automatically.
    */
   async createIntent(input: CreatePaymentIntentInput): Promise<PaymentIntent> {
-    return crapi.intents.create(input);
+    // Convert camelCase input to snake_case for Chainrails API
+    const snakeCaseInput = {
+      sender: input.sender,
+      amount: input.amount,
+      tokenIn: input.tokenIn,
+      amountSymbol: input.amountSymbol as
+        | "USDC"
+        | "USDT"
+        | "DAI"
+        | "BUSD"
+        | "EURC"
+        | "ETH"
+        | "WETH"
+        | "STRK"
+        | "BNB"
+        | "LORDS",
+      source_chain: input.sourceChain,
+      destination_chain: input.destinationChain,
+      recipient: input.recipient,
+      refund_address: input.refundAddress,
+      metadata: input.metadata,
+    };
+
+    // Call Chainrails API with snake_case
+    const result = await crapi.intents.create(snakeCaseInput);
+
+    // Convert snake_case response to camelCase
+    return {
+      id: result.id,
+      intentAddress: result.intent_address,
+      intentStatus: result.intent_status,
+      sender: result.sender,
+      recipient: result.recipient,
+      tokenIn: result.token_in,
+      amountSymbol: result.amount_symbol,
+      amount: result.amount,
+      sourceChain: result.source_chain,
+      destinationChain: result.destination_chain,
+      refundAddress: result.refund_address,
+      metadata: result.metadata,
+      createdAt: result.created_at,
+      expiresAt: result.expires_at,
+    };
   }
 
   /**
@@ -250,28 +333,32 @@ export class Payment {
   async createSessionIntent(
     input: CreateSessionIntentInput
   ): Promise<PaymentIntent> {
-    return crapi.intents.createForSession(input);
+    const result = await crapi.intents.createForSession(input);
+    return this.normalizeIntent(result);
   }
 
   /**
    * Get a payment intent by its ID.
    */
   async getIntent(id: string): Promise<PaymentIntent> {
-    return crapi.intents.getById(id);
+    const result = await crapi.intents.getById(id);
+    return this.normalizeIntent(result);
   }
 
   /**
    * Get a payment intent by its on-chain address.
    */
   async getIntentByAddress(address: `0x${string}`): Promise<PaymentIntent> {
-    return crapi.intents.getForAddress(address);
+    const result = await crapi.intents.getForAddress(address);
+    return this.normalizeIntent(result);
   }
 
   /**
    * Get all intents for a sender address.
    */
   async getIntentsForSender(sender: `0x${string}`): Promise<PaymentIntent[]> {
-    return crapi.intents.getForSender(sender);
+    const results = await crapi.intents.getForSender(sender);
+    return results.map(this.normalizeIntent);
   }
 
   /**
@@ -280,14 +367,20 @@ export class Payment {
   async listIntents(
     input?: ListPaymentIntentsInput
   ): Promise<ListPaymentIntentsOutput> {
-    return crapi.intents.getAll(input ?? {});
+    const result = await crapi.intents.getAll(input ?? {});
+    // Normalize intents in the response
+    if (result.intents) {
+      result.intents = result.intents.map(this.normalizeIntent);
+    }
+    return result;
   }
 
   /**
    * Get all intents for the current session.
    */
   async getSessionIntents(address: `0x${string}`): Promise<PaymentIntent[]> {
-    return crapi.intents.getForSession(address);
+    const results = await crapi.intents.getForSession(address);
+    return results.map(this.normalizeIntent);
   }
 
   /**
@@ -297,7 +390,8 @@ export class Payment {
     id: string,
     status: PaymentIntentStatus
   ): Promise<PaymentIntent> {
-    return crapi.intents.update(id, { status });
+    const result = await crapi.intents.update(id, { status });
+    return this.normalizeIntent(result);
   }
 
   /**
