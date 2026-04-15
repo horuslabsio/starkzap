@@ -77,7 +77,7 @@ const sdk = new StarkZap({
 const payment = sdk.payment();
 
 export async function createPaymentSession(recipient: string, amount: string) {
-  const session = await payment.createSession({
+  const session = await payment.session.create({
     recipient,
     token: PaymentTokenSymbols.USDC,
     destinationChain: PaymentChains.STARKNET,
@@ -120,7 +120,7 @@ const sdk = new StarkZap({
 const payment = sdk.payment();
 
 export async function openPaymentModal(sessionToken: string, amount: string) {
-  const modal = payment.modal({
+  const modal = payment.checkout({
     sessionToken,
     amount,
     platform: "web",

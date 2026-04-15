@@ -130,7 +130,7 @@ A **Payment Intent** represents a concrete payment flow:
 ### Creating a Session
 
 ```typescript
-const session = await payment.createSession({
+const session = await payment.session.create({
   recipient: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
   token: "USDC",
   destinationChain: "STARKNET",
@@ -150,7 +150,7 @@ The **Payment Modal** provides a beautiful, embedded UI for completing cross-cha
 
 ```typescript
 // Create a modal handle
-const modalHandle = payment.modal({
+const modalHandle = payment.checkout({
   sessionToken: session.sessionToken,
   amount: "100.00",
   platform: "web",  // or "mobile"
@@ -182,7 +182,7 @@ Quotes tell you how much a cross-chain payment will cost in terms of fees and fi
 Get quotes from **all possible source chains** for a destination:
 
 ```typescript
-const quotes = await payment.getAllQuotes({
+const quotes = await payment.getQuotes({
   destinationChain: "STARKNET",
   tokenOut: "0x053c91253...",  // USDC on Starknet
   amount: "10",
@@ -447,7 +447,7 @@ const sdk = new StarkZap({
 const payment = sdk.payment();
 
 export async function createPaymentSession(recipient: string, amount: string) {
-  const session = await payment.createSession({
+  const session = await payment.session.create({
     recipient,
     token: PaymentTokenSymbols.USDC,
     destinationChain: PaymentChains.STARKNET,
@@ -490,7 +490,7 @@ const sdk = new StarkZap({
 const payment = sdk.payment();
 
 export async function openPaymentModal(sessionToken: string, amount: string) {
-  const modal = payment.modal({
+  const modal = payment.checkout({
     sessionToken,
     amount,
     platform: "web",

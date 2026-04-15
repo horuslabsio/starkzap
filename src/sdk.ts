@@ -582,7 +582,7 @@ export class StarkZap {
    * const payment = sdk.payment();
    *
    * // Get quotes from every source chain
-   * const quotes = await payment.getAllQuotes({
+   * const quotes = await payment.getQuotes({
    *   destinationChain: "STARKNET",
    *   tokenOut: "0x053c91...",
    *   amount: "10",

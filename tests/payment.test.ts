@@ -124,7 +124,7 @@ describe("Payment", () => {
           amount: "25.00",
         } as never);
 
-      const result = await payment.createSession({
+      const result = await payment.session.create({
         recipient: "0xrecipient",
         token: "USDC",
         destinationChain: "STARKNET",
@@ -144,7 +144,7 @@ describe("Payment", () => {
 
   describe("modal", () => {
     it("returns a simple modal handle with pay() for web platform", () => {
-      const flow = payment.modal({
+      const flow = payment.checkout({
         platform: "web",
         sessionToken: "tok_123",
         amount: "25.00",
@@ -157,7 +157,7 @@ describe("Payment", () => {
     });
 
     it("defaults platform to web when not specified", () => {
-      const flow = payment.modal({
+      const flow = payment.checkout({
         sessionToken: "tok_default",
       });
 
@@ -169,7 +169,7 @@ describe("Payment", () => {
 
   // ── Quotes ──────────────────────────────────────────────────────────────
 
-  describe("getAllQuotes", () => {
+  describe("getQuotes", () => {
     it("fetches multi-source quotes with internal chain", async () => {
       const mockOutput = {
         destinationChain: "STARKNET",
@@ -180,7 +180,7 @@ describe("Payment", () => {
         .spyOn(crapi.quotes, "getAll")
         .mockResolvedValue(mockOutput as never);
 
-      const result = await payment.getAllQuotes({
+      const result = await payment.getQuotes({
         destinationChain: "STARKNET",
         tokenOut: "0x053c91",
         amount: "10",

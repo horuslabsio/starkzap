@@ -212,7 +212,7 @@ app.get("/session-token", async (_, res) => {
   }
 
   try {
-    const session = await starkzap.payment().createSession({
+    const session = await starkzap.payment().session.create({
       amount: "0.1",
       recipient:
         "0x0075597a61229d143Ffba493C9f8A8057ecCeeA7BFDDBFD8Aaf79AC8935205c0",

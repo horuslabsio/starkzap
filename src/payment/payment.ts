@@ -16,7 +16,7 @@
  * const payment = sdk.payment();
  *
  * // Get quotes from all source chains
- * const quotes = await payment.getAllQuotes({
+ * const quotes = await payment.getQuotes({
  *   destinationChain: "STARKNET",
  *   tokenOut: "0x053c91...",
  *   amount: "10",
@@ -48,8 +48,8 @@ import type {
   GetQuotesFromAllBridgesOutput,
   GetBestQuoteInput,
   GetBestQuoteOutput,
-  GetAllQuotesInput,
-  GetAllQuotesOutput,
+  GetQuotesInput,
+  GetQuotesOutput,
   GetSessionQuotesInput,
   GetSessionQuotesOutput,
   // Intents
@@ -72,12 +72,10 @@ import type {
   GetChainBalanceInput,
   PaymentModalHandle,
   PaymentModalInput,
-  // Auth
-  CreatePaymentSessionInput,
-  PaymentSessionOutput,
   // Client
   PaymentClientInfo,
 } from "@/payment/types";
+import { Session } from "./session";
 
 /**
  * Cross-chain payment module powered by Chainrails.
@@ -87,11 +85,12 @@ import type {
  */
 export class Payment {
   private modalManagerPromise: Promise<{
-    modal: (input: PaymentModalInput) => PaymentModalHandle;
+    checkout: (input: PaymentModalInput) => PaymentModalHandle;
   }> | null = null;
 
   /** Stored session token from the most recent `createSession` call. */
   private currentSessionToken: string | null = null;
+  session: Session;
 
   constructor(config: PaymentConfig) {
     // Only configure/reconfigure Chainrails if we have a valid API key.
@@ -101,6 +100,8 @@ export class Payment {
         env: config.environment ?? "production",
       });
     }
+
+    this.session = new Session(this);
   }
 
   getSessionToken(): string | null {
@@ -112,10 +113,10 @@ export class Payment {
   }
 
   private getModalManager(): Promise<{
-    modal: (input: PaymentModalInput) => PaymentModalHandle;
+    checkout: (input: PaymentModalInput) => PaymentModalHandle;
   }> {
     if (!this.modalManagerPromise) {
-      this.modalManagerPromise = import("@/payment/modal").then(
+      this.modalManagerPromise = import("@/payment/checkout").then(
         ({ PaymentModalManager }) => new PaymentModalManager()
       );
     }
@@ -178,7 +179,7 @@ export class Payment {
    *
    * @example
    * ```ts
-   * const session = await payment.createSession({
+   * const session = await payment.session.create({
    *   recipient: "0xRecipient...",
    *   token: "USDC",
    *   destinationChain: "STARKNET",
@@ -187,13 +188,6 @@ export class Payment {
    * // Use session.sessionToken for session-scoped calls
    * ```
    */
-  async createSession(
-    input: CreatePaymentSessionInput
-  ): Promise<PaymentSessionOutput> {
-    const result = await crapi.auth.getSessionToken(input);
-    this.setSessionToken(result.sessionToken);
-    return result;
-  }
 
   /**
    * Create a platform-aware payment modal handle.
@@ -202,7 +196,7 @@ export class Payment {
    * - `true` on successful payment
    * - `false` on cancel/close
    */
-  modal(input: PaymentModalInput): PaymentModalHandle {
+  checkout(input: PaymentModalInput): PaymentModalHandle {
     const platform = input.platform ?? "web";
 
     const handle: PaymentModalHandle = {
@@ -210,7 +204,7 @@ export class Payment {
       sessionToken: input.sessionToken,
       pay: async () => {
         const modalManager = await this.getModalManager();
-        return modalManager.modal({ ...input, platform }).pay();
+        return modalManager.checkout({ ...input, platform }).pay();
       },
     };
 
@@ -258,7 +252,7 @@ export class Payment {
    *
    * This is the easiest way to discover every path a payer can use.
    */
-  async getAllQuotes(input: GetAllQuotesInput): Promise<GetAllQuotesOutput> {
+  async getQuotes(input: GetQuotesInput): Promise<GetQuotesOutput> {
     return crapi.quotes.getAll(input);
   }
 

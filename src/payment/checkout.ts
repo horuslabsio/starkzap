@@ -3,7 +3,7 @@ import type { PaymentModalHandle, PaymentModalInput } from "@/payment/types";
 export class PaymentModalManager {
   private activeModalCleanup: (() => void) | null = null;
 
-  modal(input: PaymentModalInput): PaymentModalHandle {
+  checkout(input: PaymentModalInput): PaymentModalHandle {
     const platform = input.platform ?? "web";
 
     const handle: PaymentModalHandle = {
@@ -25,7 +25,7 @@ export class PaymentModalManager {
       this.assertBrowser(platform);
       return this.payVanillaToken(input);
     } else {
-      throw new Error(`Unsupported payment.modal platform "${platform}".`);
+      throw new Error(`Unsupported payment.checkout platform "${platform}".`);
     }
   }
 

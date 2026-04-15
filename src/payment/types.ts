@@ -163,10 +163,10 @@ export type GetBestQuoteOutput = AsyncResult<
 /**
  * Input for fetching quotes from all source chains.
  */
-export type GetAllQuotesInput = Parameters<typeof crapi.quotes.getAll>[0];
+export type GetQuotesInput = Parameters<typeof crapi.quotes.getAll>[0];
 
 /** Output of a multi-source quote request. */
-export type GetAllQuotesOutput = AsyncResult<typeof crapi.quotes.getAll>;
+export type GetQuotesOutput = AsyncResult<typeof crapi.quotes.getAll>;
 
 /**
  * Input for fetching quotes for a session.
