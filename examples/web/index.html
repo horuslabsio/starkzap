@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>X SDK Playground</title>
+    <title>Starkzap Playground</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -68,6 +68,50 @@
       .subtitle {
         color: var(--text-secondary);
         font-size: 1.1rem;
+      }
+
+      .header-meta {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .network-selector {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+      }
+
+      .network-label {
+        margin: 0;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .network-select {
+        min-width: 140px;
+        padding: 0.55rem 0.75rem;
+      }
+
+      .network-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-radius: 999px;
+        color: var(--accent-primary);
+        border: 1px solid var(--accent-primary);
+        opacity: 0.85;
       }
 
       .card {
@@ -175,6 +219,60 @@
         font-weight: 500;
         color: var(--text-secondary);
         margin-bottom: 0.5rem;
+      }
+
+      .field-label-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .field-label-row label {
+        margin-bottom: 0;
+      }
+
+      .field-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+
+      .field-action-btn {
+        width: auto;
+        min-width: 0;
+        flex: none;
+        padding: 0.45rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .lending-action-pills {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.65rem;
+        margin-bottom: 1rem;
+      }
+
+      .lending-action-pill {
+        width: 100%;
+        min-width: 0;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      .lending-action-pill.is-active {
+        background: rgba(0, 212, 170, 0.16);
+        border-color: rgba(0, 212, 170, 0.5);
+        color: var(--text-primary);
+        box-shadow: inset 0 0 0 1px rgba(0, 212, 170, 0.3);
       }
 
       input,
@@ -357,6 +455,12 @@
         width: auto;
       }
 
+      .panel-note {
+        margin-bottom: 0.85rem;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
       .quote-box {
         margin-top: 0.75rem;
         border: 1px solid var(--border-color);
@@ -384,6 +488,87 @@
       .quote-value {
         font-family: var(--font-mono);
         color: var(--text-primary);
+      }
+
+      .orders-list {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+      }
+
+      .order-card {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 0.9rem;
+        background: rgba(10, 10, 15, 0.35);
+      }
+
+      .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+      }
+
+      .order-title {
+        font-weight: 600;
+      }
+
+      .order-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-family: var(--font-mono);
+      }
+
+      .order-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem 1rem;
+      }
+
+      .order-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+
+      .order-meta-label {
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .order-meta-value {
+        color: var(--text-primary);
+        font-size: 0.88rem;
+        font-family: var(--font-mono);
+      }
+
+      .order-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.9rem;
+      }
+
+      .btn-small {
+        flex: 0 0 auto;
+        min-width: 0;
+        padding: 0.7rem 0.95rem;
+        font-size: 0.82rem;
+      }
+
+      .orders-empty {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 640px) {
+        .order-grid {
+          grid-template-columns: 1fr;
+        }
       }
 
       .log-container {
@@ -465,14 +650,102 @@
           transform: rotate(360deg);
         }
       }
+
+      /* Bridge section */
+      .bridge-card {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--bg-tertiary);
+      }
+
+      .bridge-direction-btn {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        color: var(--text-primary);
+        cursor: pointer;
+        font-family: var(--font-sans);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: border-color 0.2s;
+      }
+
+      .bridge-direction-btn:hover {
+        border-color: var(--accent-primary);
+      }
+
+      .bridge-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        font-size: 0.85rem;
+      }
+
+      .bridge-row-label {
+        color: var(--text-secondary);
+      }
+
+      .bridge-row-value {
+        font-family: var(--font-mono);
+        color: var(--text-primary);
+        font-size: 0.8rem;
+      }
+
+      .bridge-row-value.loading {
+        color: var(--text-muted);
+        font-style: italic;
+      }
+
+      .bridge-fees {
+        margin-top: 0.5rem;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: rgba(10, 10, 15, 0.45);
+        font-size: 0.8rem;
+        white-space: pre-line;
+        color: var(--text-secondary);
+        font-family: var(--font-mono);
+      }
+
+      .bridge-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .bridge-toggle input[type="checkbox"] {
+        width: auto;
+        accent-color: var(--accent-primary);
+      }
     </style>
   </head>
 
   <body>
     <div class="app">
       <header>
-        <h1>X SDK</h1>
+        <h1>Starkzap</h1>
         <p class="subtitle">Wallet Integration Playground</p>
+        <div class="header-meta">
+          <div class="network-selector">
+            <label for="network-select" class="network-label">Network</label>
+            <select id="network-select" class="network-select">
+              <option value="sepolia">Sepolia</option>
+              <option value="mainnet">Mainnet</option>
+            </select>
+          </div>
+          <span id="network-badge" class="network-badge"></span>
+        </div>
       </header>
 
       <!-- Connection Options -->
@@ -718,6 +991,574 @@
             </button>
           </div>
           <div id="swap-quote" class="quote-box hidden"></div>
+        </div>
+
+        <div class="swap-card">
+          <div class="card-title" style="margin-bottom: 0.75rem">
+            Confidential (Tongo)
+          </div>
+          <div class="form-group">
+            <label for="tongo-token-select">Token</label>
+            <select id="tongo-token-select"></select>
+          </div>
+          <div class="actions" style="margin-top: 0.75rem">
+            <button id="btn-tongo-init" class="btn btn-primary">
+              Initialize
+            </button>
+          </div>
+
+          <div id="tongo-ops" class="hidden">
+            <div
+              style="
+                margin-top: 1rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid var(--border-color);
+              "
+            >
+              <div class="info-row">
+                <span class="info-label">Tongo Address</span>
+                <span
+                  id="tongo-address"
+                  class="info-value address"
+                  style="user-select: all"
+                  >—</span
+                >
+              </div>
+              <div class="info-row">
+                <span class="info-label">Active Balance</span>
+                <span id="tongo-balance" class="info-value">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Pending Balance</span>
+                <span id="tongo-pending" class="info-value">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Nonce</span>
+                <span id="tongo-nonce" class="info-value">—</span>
+              </div>
+            </div>
+
+            <div class="swap-grid" style="margin-top: 1rem">
+              <div class="form-group">
+                <label for="tongo-fund-amount">Fund Amount</label>
+                <input id="tongo-fund-amount" type="text" placeholder="0.01" />
+              </div>
+              <div class="form-group" style="display: flex; align-items: end">
+                <button
+                  id="btn-tongo-fund"
+                  class="btn btn-primary"
+                  style="width: 100%"
+                >
+                  Fund
+                </button>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid var(--border-color);
+              "
+            >
+              <div class="swap-grid">
+                <div class="form-group">
+                  <label for="tongo-transfer-rx">Recipient X</label>
+                  <input
+                    id="tongo-transfer-rx"
+                    type="text"
+                    placeholder="0x..."
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="tongo-transfer-ry">Recipient Y</label>
+                  <input
+                    id="tongo-transfer-ry"
+                    type="text"
+                    placeholder="0x..."
+                  />
+                </div>
+              </div>
+              <div class="swap-grid">
+                <div class="form-group">
+                  <label for="tongo-transfer-amount">Transfer Amount</label>
+                  <input
+                    id="tongo-transfer-amount"
+                    type="text"
+                    placeholder="0.01"
+                  />
+                </div>
+                <div class="form-group" style="display: flex; align-items: end">
+                  <button
+                    id="btn-tongo-transfer"
+                    class="btn btn-primary"
+                    style="width: 100%"
+                  >
+                    Transfer
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid var(--border-color);
+              "
+            >
+              <div class="swap-grid">
+                <div class="form-group">
+                  <label for="tongo-withdraw-amount">Withdraw Amount</label>
+                  <input
+                    id="tongo-withdraw-amount"
+                    type="text"
+                    placeholder="0.01"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="tongo-withdraw-to">To Address</label>
+                  <input
+                    id="tongo-withdraw-to"
+                    type="text"
+                    placeholder="0x..."
+                  />
+                </div>
+              </div>
+              <div class="actions" style="margin-top: 0.75rem">
+                <button id="btn-tongo-withdraw" class="btn btn-primary">
+                  Withdraw
+                </button>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid var(--border-color);
+              "
+            >
+              <div class="actions" style="margin-top: 0">
+                <button id="btn-tongo-rollover" class="btn btn-secondary">
+                  Rollover
+                </button>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid var(--border-color);
+              "
+            >
+              <div class="form-group">
+                <label for="tongo-ragequit-to">Ragequit To Address</label>
+                <input id="tongo-ragequit-to" type="text" placeholder="0x..." />
+              </div>
+              <div class="actions" style="margin-top: 0.75rem">
+                <button id="btn-tongo-ragequit" class="btn btn-primary">
+                  Ragequit
+                </button>
+              </div>
+            </div>
+
+            <div class="actions" style="margin-top: 0.75rem">
+              <button id="btn-tongo-refresh" class="btn btn-secondary">
+                Refresh State
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="swap-card">
+          <div class="card-title" style="margin-bottom: 0.75rem">DCA</div>
+          <p class="panel-note">
+            Choose the recurring-order backend separately from the one-cycle
+            preview route. AVNU supports min/max buy constraints; EKUBO runs a
+            native continuous TWAMM order on supported chains. On Sepolia, try
+            ETH -&gt; USDC.e or WBTC -&gt; ETH for Ekubo DCA.
+          </p>
+          <div class="form-group">
+            <label for="dca-provider">Recurring Backend</label>
+            <select id="dca-provider"></select>
+          </div>
+          <div class="form-group">
+            <label for="dca-preview-provider">Cycle Preview Source</label>
+            <select id="dca-preview-provider"></select>
+          </div>
+          <div class="swap-grid">
+            <div class="form-group">
+              <label for="dca-token-in">Sell Token</label>
+              <select id="dca-token-in"></select>
+            </div>
+            <div class="form-group">
+              <label for="dca-token-out">Buy Token</label>
+              <select id="dca-token-out"></select>
+            </div>
+          </div>
+          <div class="swap-grid">
+            <div class="form-group">
+              <label for="dca-total-amount">Total Sell Amount</label>
+              <input id="dca-total-amount" type="text" placeholder="10" />
+            </div>
+            <div class="form-group">
+              <label for="dca-cycle-amount">Sell Amount / Cycle</label>
+              <input id="dca-cycle-amount" type="text" placeholder="1" />
+            </div>
+          </div>
+          <div class="swap-grid">
+            <div class="form-group">
+              <label for="dca-frequency">Frequency</label>
+              <select id="dca-frequency"></select>
+            </div>
+            <div class="form-group">
+              <label for="dca-min-buy">Min Buy / Cycle (optional)</label>
+              <input id="dca-min-buy" type="text" placeholder="0.1" />
+            </div>
+          </div>
+          <div class="swap-grid">
+            <div class="form-group">
+              <label for="dca-max-buy">Max Buy / Cycle (optional)</label>
+              <input id="dca-max-buy" type="text" placeholder="1.5" />
+            </div>
+            <div class="form-group swap-inline" style="margin-top: 1.85rem">
+              <input id="dca-sponsored" type="checkbox" />
+              <label for="dca-sponsored" style="margin: 0"
+                >Use sponsored fee mode</label
+              >
+            </div>
+          </div>
+          <div class="actions" style="margin-top: 0.75rem">
+            <button id="btn-dca-preview" class="btn btn-secondary">
+              Preview Cycle
+            </button>
+            <button id="btn-dca-create" class="btn btn-primary">
+              Create DCA
+            </button>
+            <button id="btn-dca-refresh" class="btn btn-secondary">
+              Refresh Orders
+            </button>
+          </div>
+          <div id="dca-preview" class="quote-box hidden"></div>
+          <div id="dca-orders" class="orders-list">
+            <div class="orders-empty">
+              Refresh orders to load current DCA orders.
+            </div>
+          </div>
+        </div>
+        <div class="swap-card" id="lending-card">
+          <div class="card-title" style="margin-bottom: 0.75rem">
+            Lending (Vesu)
+          </div>
+
+          <div class="lending-action-pills">
+            <button
+              id="btn-lending-supply-mode-deposit"
+              class="btn btn-secondary lending-action-pill"
+              type="button"
+            >
+              Deposit
+            </button>
+            <button
+              id="btn-lending-supply-mode-withdraw"
+              class="btn btn-secondary lending-action-pill"
+              type="button"
+            >
+              Withdraw
+            </button>
+          </div>
+
+          <div class="swap-grid">
+            <div class="form-group">
+              <label for="lending-token">Supply Market</label>
+              <select id="lending-token"></select>
+            </div>
+            <div class="form-group">
+              <div class="field-label-row">
+                <label id="lending-amount-label" for="lending-amount"
+                  >Amount to Deposit</label
+                >
+                <div class="field-actions">
+                  <button
+                    id="btn-lending-withdraw-max"
+                    class="btn btn-secondary field-action-btn"
+                    type="button"
+                  >
+                    Withdraw Max
+                  </button>
+                </div>
+              </div>
+              <input id="lending-amount" type="text" placeholder="0.001" />
+            </div>
+          </div>
+
+          <div class="form-group swap-inline">
+            <input id="lending-sponsored" type="checkbox" />
+            <label for="lending-sponsored" style="margin: 0"
+              >Use sponsored fee mode</label
+            >
+          </div>
+
+          <div class="actions" style="margin-top: 0.75rem">
+            <button
+              id="btn-lending-supply-submit"
+              class="btn btn-primary"
+              type="button"
+            >
+              Deposit
+            </button>
+            <button
+              id="btn-lending-markets"
+              class="btn btn-secondary"
+              type="button"
+            >
+              Browse Markets
+            </button>
+          </div>
+
+          <div id="lending-markets" class="quote-box hidden"></div>
+
+          <div class="divider" style="margin: 1rem 0; font-size: 0.8rem">
+            Borrow / Repay
+          </div>
+
+          <div class="lending-action-pills">
+            <button
+              id="btn-lending-position-mode-borrow"
+              class="btn btn-secondary lending-action-pill"
+              type="button"
+            >
+              Borrow
+            </button>
+            <button
+              id="btn-lending-position-mode-repay"
+              class="btn btn-secondary lending-action-pill"
+              type="button"
+            >
+              Repay
+            </button>
+          </div>
+
+          <div class="swap-grid">
+            <div class="form-group">
+              <label for="lending-collateral-token">Collateral Market</label>
+              <select id="lending-collateral-token"></select>
+            </div>
+            <div class="form-group">
+              <label for="lending-debt-token">Debt Asset</label>
+              <select id="lending-debt-token"></select>
+            </div>
+          </div>
+          <div class="swap-grid">
+            <div class="form-group">
+              <label
+                id="lending-collateral-amount-label"
+                for="lending-collateral-amount"
+                >Collateral Amount</label
+              >
+              <input
+                id="lending-collateral-amount"
+                type="text"
+                placeholder="0.0 (optional)"
+              />
+            </div>
+            <div class="form-group">
+              <div class="field-label-row">
+                <label id="lending-debt-amount-label" for="lending-debt-amount"
+                  >Amount to Borrow</label
+                >
+                <div class="field-actions">
+                  <button
+                    id="btn-lending-max-borrow"
+                    class="btn btn-secondary field-action-btn"
+                    type="button"
+                  >
+                    Max Borrow
+                  </button>
+                  <button
+                    id="btn-lending-repay-max"
+                    class="btn btn-secondary field-action-btn"
+                    type="button"
+                  >
+                    Repay Max
+                  </button>
+                </div>
+              </div>
+              <input id="lending-debt-amount" type="text" placeholder="0.001" />
+            </div>
+          </div>
+
+          <div class="swap-grid">
+            <div id="lending-borrow-percent-group" class="form-group hidden">
+              <label for="lending-borrow-percent">Borrow % of Max</label>
+              <input id="lending-borrow-percent" type="text" placeholder="25" />
+            </div>
+          </div>
+
+          <div id="lending-use-earn-row" class="form-group swap-inline">
+            <input id="lending-use-earn" type="checkbox" />
+            <label for="lending-use-earn" style="margin: 0"
+              >Use existing supply as collateral</label
+            >
+          </div>
+
+          <div class="actions" style="margin-top: 0.75rem">
+            <button
+              id="btn-lending-position-submit"
+              class="btn btn-primary"
+              type="button"
+            >
+              Borrow
+            </button>
+            <button
+              id="btn-lending-position"
+              class="btn btn-secondary"
+              type="button"
+            >
+              View Position
+            </button>
+          </div>
+
+          <div class="actions" style="margin-top: 0.5rem">
+            <button
+              id="btn-lending-my-positions"
+              class="btn btn-secondary"
+              type="button"
+            >
+              My Positions
+            </button>
+            <button
+              id="btn-lending-health-quote"
+              class="btn btn-secondary"
+              type="button"
+            >
+              Health Quote
+            </button>
+          </div>
+
+          <div id="lending-draft" class="quote-box hidden"></div>
+          <div id="lending-position" class="quote-box hidden"></div>
+        </div>
+      </div>
+
+      <!-- Bridge (shown when Starknet wallet connected) -->
+      <div id="bridge-section" class="card hidden">
+        <div class="card-title">Bridge</div>
+
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+          "
+        >
+          <button id="bridge-direction-btn" class="bridge-direction-btn">
+            Ethereum &rarr; Starknet
+          </button>
+          <button
+            id="btn-appkit-connect"
+            class="btn btn-secondary"
+            style="padding: 0.6rem 1.2rem; font-size: 0.85rem"
+          >
+            Connect Wallet
+          </button>
+          <span
+            id="bridge-eth-address"
+            class="info-value"
+            style="font-size: 0.8rem; color: var(--text-muted)"
+          ></span>
+        </div>
+
+        <div class="bridge-card">
+          <div class="form-group">
+            <label for="bridge-token">Token</label>
+            <select id="bridge-token">
+              <option value="">Select a token...</option>
+            </select>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 0.25rem 0;
+            "
+          >
+            <span
+              style="
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-muted);
+              "
+              >Balances</span
+            >
+            <button
+              id="btn-bridge-refresh"
+              class="bridge-direction-btn"
+              style="padding: 0.25rem 0.6rem; font-size: 0.75rem"
+              title="Refresh balances &amp; allowance"
+            >
+              Refresh
+            </button>
+          </div>
+
+          <div class="bridge-row">
+            <span class="bridge-row-label">Starknet Balance</span>
+            <span id="bridge-starknet-balance" class="bridge-row-value">—</span>
+          </div>
+
+          <div class="bridge-row">
+            <span id="bridge-external-balance-label" class="bridge-row-label"
+              >Ethereum Balance</span
+            >
+            <span id="bridge-external-balance" class="bridge-row-value">—</span>
+          </div>
+
+          <div id="bridge-allowance-row" class="bridge-row">
+            <span class="bridge-row-label">Allowance</span>
+            <span id="bridge-allowance" class="bridge-row-value">—</span>
+          </div>
+
+          <div
+            id="bridge-fast-transfer-row"
+            class="hidden"
+            style="padding: 0.5rem 0"
+          >
+            <label class="bridge-toggle">
+              <input type="checkbox" id="bridge-fast-transfer" />
+              Fast Transfer (CCTP)
+            </label>
+          </div>
+
+          <div id="bridge-fees-section" class="hidden">
+            <div
+              style="
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                margin-bottom: 0.375rem;
+              "
+            >
+              Fee Estimate
+            </div>
+            <div id="bridge-fees" class="bridge-fees">—</div>
+          </div>
+
+          <div class="form-group" style="margin-top: 0.75rem">
+            <label for="bridge-amount">Amount</label>
+            <input id="bridge-amount" type="text" placeholder="0.001" />
+          </div>
+
+          <div class="actions" style="margin-top: 0.75rem">
+            <button id="btn-bridge-deposit" class="btn btn-primary" disabled>
+              Bridge Deposit
+            </button>
+          </div>
         </div>
       </div>
 

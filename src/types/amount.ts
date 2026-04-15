@@ -235,19 +235,18 @@ export class Amount {
    * Amount.parse("0.5", 8)             // 0.5 with 8 decimals, no symbol
    * ```
    */
-  static parse(amount: BigNumberish, ...args: AmountArgs): Amount {
-    let decimals: number;
-    let symbol: string | undefined;
-
+  private static resolveArgs(args: AmountArgs): {
+    decimals: number;
+    symbol: string | undefined;
+  } {
     if (typeof args[0] === "number") {
-      // TypeScript knows this is Shape B
-      decimals = args[0];
-      symbol = args[1]; // It knows this is a string | undefined
-    } else {
-      // TypeScript knows this is Shape A (Token)
-      decimals = args[0].decimals;
-      symbol = args[0].symbol;
+      return { decimals: args[0], symbol: args[1] };
     }
+    return { decimals: args[0].decimals, symbol: args[0].symbol };
+  }
+
+  static parse(amount: BigNumberish, ...args: AmountArgs): Amount {
+    const { decimals, symbol } = Amount.resolveArgs(args);
     assertValidDecimals(decimals);
 
     // If someone passes a raw bigint here, it's ambiguous.
@@ -302,18 +301,7 @@ export class Amount {
    * ```
    */
   static fromRaw(amount: BigNumberish, ...args: AmountArgs): Amount {
-    let decimals: number;
-    let symbol: string | undefined;
-
-    if (typeof args[0] === "number") {
-      // TypeScript knows this is Shape B
-      decimals = args[0];
-      symbol = args[1]; // It knows this is a string | undefined
-    } else {
-      // TypeScript knows this is Shape A (Token)
-      decimals = args[0].decimals;
-      symbol = args[0].symbol;
-    }
+    const { decimals, symbol } = Amount.resolveArgs(args);
     assertValidDecimals(decimals);
 
     const normalizedAmount = normalizeRawNumberish(amount);
@@ -821,6 +809,27 @@ export class Amount {
    */
   public isPositive(): boolean {
     return this.baseValue > 0n;
+  }
+}
+
+/**
+ * Validate that an Amount is compatible with a token's decimals/symbol metadata.
+ *
+ * @throws Error if decimals differ, or if symbol is set and mismatched.
+ */
+export function assertAmountMatchesToken(amount: Amount, token: Token): void {
+  const amountDecimals = amount.getDecimals();
+  if (amountDecimals !== token.decimals) {
+    throw new Error(
+      `Amount decimals mismatch: expected ${token.decimals} (${token.symbol}), got ${amountDecimals}`
+    );
+  }
+
+  const amountSymbol = amount.getSymbol();
+  if (amountSymbol !== undefined && amountSymbol !== token.symbol) {
+    throw new Error(
+      `Amount symbol mismatch: expected "${token.symbol}", got "${amountSymbol}"`
+    );
   }
 }
 

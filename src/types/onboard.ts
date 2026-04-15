@@ -5,11 +5,11 @@ import type {
   DeployMode,
   FeeMode,
   ProgressEvent,
+  ProviderOptions,
 } from "@/types/wallet";
 import type { ExplorerConfig } from "@/types/config";
 import type { WalletInterface } from "@/wallet/interface";
 import type { AccountPresetName } from "@/account/presets";
-import type { SwapProvider } from "@/swap/interface";
 
 type PrivySigningHeaders =
   | Record<string, string>
@@ -28,15 +28,11 @@ export const OnboardStrategy = {
 export type OnboardStrategy =
   (typeof OnboardStrategy)[keyof typeof OnboardStrategy];
 
-export interface OnboardBaseOptions {
+export interface OnboardBaseOptions extends ProviderOptions {
   feeMode?: FeeMode;
   timeBounds?: PaymasterTimeBounds;
   deploy?: DeployMode;
   onProgress?: (event: ProgressEvent) => void;
-  /** Optional additional swap providers to register on the wallet */
-  swapProviders?: SwapProvider[];
-  /** Optional default swap provider id (must be registered) */
-  defaultSwapProviderId?: string;
 }
 
 export interface OnboardPrivyResolveResult {

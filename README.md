@@ -18,22 +18,56 @@ Bring Bitcoin, stablecoins, and DeFi to any web or mobile app via Starknet in mi
 
 ## Installation
 
+Install Starkzap using npm or yarn:
+
 ```bash
 npm install starkzap
 ```
 
-Peer dependencies (installed automatically with `starkzap`):
+or
 
-- [`starknet`](https://www.npmjs.com/package/starknet) (v9+) — Starknet.js core (installed with `starkzap`)
-- [`@cartridge/controller`](https://www.npmjs.com/package/@cartridge/controller) — optional peer, only needed for Cartridge support
+```bash
+yarn add starkzap
+```
 
-For specific integrations, you may need:
+Building for React Native/Expo? Use [React Native Integration](/build/starkzap/react-native) and install `starkzap-native` instead of using `starkzap` directly in your mobile app.
 
-- **Privy** (server): `npm install @privy-io/node` — see [Privy integration](https://docs.starknet.io/build/starkzap/integrations/privy)
-- **Privy** (React Native / Expo): see the [Privy docs](https://docs.privy.io) for the Expo SDK
-- **AVNU Paymaster**: no extra package; configure a paymaster URL — see [Paymasters](https://docs.starknet.io/build/starkzap/paymasters) and [AVNU integration](https://docs.starknet.io/build/starkzap/integrations/avnu-paymaster)
+### Dependencies
 
-The package is published on npm as [`starkzap`](https://www.npmjs.com/package/starkzap); use `npm install starkzap` and `from "starkzap"` when not developing from this repo.
+The SDK depends on:
+
+- [`starknet`](https://www.npmjs.com/package/starknet) (v9+) - Starknet.js core library
+
+This will be installed automatically when you install `starkzap`.
+
+#### Peer dependencies by feature
+
+All peer dependencies are **optional** to keep the package lean. Install only what you need:
+
+| Feature                                                          | Included in                       | Peer Dependencies                                                                                         |
+| ---------------------------------------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Ethereum bridging** (deposit / withdraw to Ethereum)           | `starkzap`,<br/>`starkzap-native` | `ethers@^6`                                                                                               |
+| **Solana bridging** (deposit / withdraw to Solana via Hyperlane) | `starkzap`,<br/>`starkzap-native` | `@solana/web3.js@^1`, `@hyperlane-xyz/sdk@^14`, `@hyperlane-xyz/registry@^19`, `@hyperlane-xyz/utils@^14` |
+| **Cartridge Controller wallet**                                  | `starkzap`,<br/>`starkzap-native` | `@cartridge/controller@^0.13`                                                                             |
+| **Confidential transfers** (Tongo)                               | `starkzap`,<br/>`starkzap-native` | `@fatsolutions/tongo-sdk@^1`                                                                              |
+| **React Native / Expo**                                          | `starkzap-native`                 | `react-native-get-random-values@^1`, `fast-text-encoding@^1`, `@ethersproject/shims@^5`, `buffer@^6`      |
+
+```bash
+# Ethereum bridging
+npm install ethers
+
+# Solana bridging
+npm install @solana/web3.js @hyperlane-xyz/sdk @hyperlane-xyz/registry @hyperlane-xyz/utils
+
+# Cartridge Controller (only for Web)
+npm install @cartridge/controller
+
+# Confidential transfers
+npm install @fatsolutions/tongo-sdk
+
+# React Native / Expo (use starkzap-native instead of starkzap)
+npm install starkzap-native react-native-get-random-values fast-text-encoding @ethersproject/shims buffer
+```
 
 ---
 
@@ -86,21 +120,6 @@ For server-based payment flows, pass `payment: { apiKey: "..." }` when creating 
 
 All guides and API reference live on the Starknet docs site. We recommend starting with [Quick Start](https://docs.starknet.io/build/starkzap/quick-start).
 
-- [Overview](https://docs.starknet.io/build/starkzap/overview)
-- [Installation](https://docs.starknet.io/build/starkzap/installation)
-- [Quick Start](https://docs.starknet.io/build/starkzap/quick-start)
-- [Configuration](https://docs.starknet.io/build/starkzap/configuration)
-- [Paymasters](https://docs.starknet.io/build/starkzap/paymasters)
-- [Connecting Wallets](https://docs.starknet.io/build/starkzap/connecting-wallets)
-- [Transactions](https://docs.starknet.io/build/starkzap/transactions)
-- [ERC20 Tokens](https://docs.starknet.io/build/starkzap/erc20)
-- [Staking](https://docs.starknet.io/build/starkzap/staking)
-- [Transaction Builder](https://docs.starknet.io/build/starkzap/tx-builder)
-- [Integrations](https://docs.starknet.io/build/starkzap/integrations/avnu-paymaster) — AVNU Paymaster, Privy, Cartridge
-- [Examples](https://docs.starknet.io/build/starkzap/examples)
-- [API Reference](https://docs.starknet.io/build/starkzap/api-reference)
-- [Glossary](https://docs.starknet.io/build/starkzap/glossary) · [Troubleshooting](https://docs.starknet.io/build/starkzap/troubleshooting)
-
 ---
 
 ## Examples
@@ -124,8 +143,6 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/0xsisyfos"><img src="https://avatars.githubusercontent.com/u/107465625?v=4?s=100" width="100px;" alt="0xsisyfos"/><br /><sub><b>0xsisyfos</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/starkzap/commits?author=0xsisyfos" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Akashneelesh"><img src="https://avatars.githubusercontent.com/u/66639153?v=4?s=100" width="100px;" alt="Akashneelesh"/><br /><sub><b>Akashneelesh</b></sub></a><br /><a href="https://github.com/Akashneelesh/awesome-starkzap/commits?author=Akashneelesh" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/abdelhamidbakhta"><img src="https://avatars.githubusercontent.com/u/45264458?v=4?s=100" width="100px;" alt="Abdel @ StarkWare "/><br /><sub><b>Abdel @ StarkWare </b></sub></a><br /><a href="https://github.com/keep-starknet-strange/alexandria/commits?author=abdelhamidbakhta" title="Code">💻</a></td>
-
-    </tr>
   </tbody>
   <tfoot>
     <tr>

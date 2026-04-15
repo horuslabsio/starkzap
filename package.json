@@ -1,10 +1,9 @@
 {
   "name": "starkzap",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Helper sdk for easy wallet integration",
   "workspaces": [
-    "packages/*",
-    "examples/*"
+    "packages/*"
   ],
   "homepage": "https://github.com/keep-starknet-strange/x#readme",
   "bugs": {
@@ -30,16 +29,40 @@
     }
   },
   "peerDependencies": {
-    "@cartridge/controller": "^0.13.9"
+    "@cartridge/controller": "^0.13.9",
+    "@fatsolutions/tongo-sdk": "^1.3.2",
+    "@hyperlane-xyz/registry": "^19.4.0",
+    "@hyperlane-xyz/sdk": "^14.4.0",
+    "@hyperlane-xyz/utils": "^14.4.0",
+    "@solana/web3.js": "^1.98.4",
+    "ethers": "^6.16.0"
   },
   "peerDependenciesMeta": {
     "@cartridge/controller": {
+      "optional": true
+    },
+    "@hyperlane-xyz/registry": {
+      "optional": true
+    },
+    "@hyperlane-xyz/sdk": {
+      "optional": true
+    },
+    "@hyperlane-xyz/utils": {
+      "optional": true
+    },
+    "@fatsolutions/tongo-sdk": {
       "optional": true
     },
     "react-native-get-random-values": {
       "optional": true
     },
     "fast-text-encoding": {
+      "optional": true
+    },
+    "ethers": {
+      "optional": true
+    },
+    "@solana/web3.js": {
       "optional": true
     },
     "@ethersproject/shims": {
@@ -53,10 +76,10 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc; tsc-alias --resolve-full-paths --resolve-full-extension .js",
-    "build:all": "npm run build --workspace @starkzap/native",
+    "build": "tsc; tsc-alias",
+    "build:all": "npm run build --workspace starkzap-native",
     "typecheck": "tsc --noEmit",
-    "typecheck:all": "npm run typecheck --workspace @starkzap/native",
+    "typecheck:all": "npm run typecheck --workspace starkzap-native",
     "lint": "eslint .",
     "fix": "eslint . --fix",
     "prettier": "prettier --write .",
@@ -67,6 +90,7 @@
     "test:integration": "vitest run --project integration",
     "test:integration:watch": "vitest --project integration",
     "test:all": "vitest run",
+    "test:live:vesu:sepolia": "RUN_LIVE_VESU_SEPOLIA_TESTS=1 vitest run --project unit tests/lending-vesu-sepolia-live.test.ts",
     "generate:tokens": "npx tsx scripts/generate-token-presets.ts --network mainnet",
     "generate:tokens:sepolia": "npx tsx scripts/generate-token-presets.ts --network sepolia",
     "generate:validators": "npx tsx scripts/generate-validator-presets.ts --network mainnet",
@@ -74,17 +98,24 @@
     "docs:api": "typedoc --options typedoc.json",
     "docs:export": "npm run docs:api && node scripts/docs-export.mjs",
     "docs:check": "npm run docs:api",
-    "example:server": "npm run start --workspace starkzap-example-server",
+    "example:server": "npm run start --prefix examples/server",
     "prepare": "husky"
   },
   "devDependencies": {
+    "@0no-co/graphql.web": "^1.2.0",
     "@cartridge/controller": "^0.13.9",
+    "@fatsolutions/tongo-sdk": "^1.3.2",
     "@eslint/js": "^9.39.2",
+    "@hyperlane-xyz/registry": "^19.4.0",
+    "@hyperlane-xyz/sdk": "^14.4.0",
+    "@hyperlane-xyz/utils": "^14.4.0",
     "@vitest/coverage-v8": "^4.0.17",
+    "@solana/web3.js": "^1.98.4",
     "bestzip": "^2.2.1",
     "dotenv": "^17.2.3",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
+    "ethers": "^6.16.0",
     "husky": "^9.1.7",
     "prettier": "3.8.1",
     "starknet-devnet": "^0.7.2",
@@ -94,6 +125,7 @@
     "typedoc-plugin-markdown": "^4.10.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1",
+    "utf-8-validate": "^6.0.6",
     "vite": "^7.3.1",
     "vitest": "^4.0.17"
   },

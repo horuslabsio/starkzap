@@ -15,24 +15,26 @@ import type { SignerInterface } from "@/signer";
 import type {
   Address,
   AccountClassConfig,
+  BridgingConfig,
   DeployOptions,
   EnsureReadyOptions,
   ExecuteOptions,
   FeeMode,
   PreflightOptions,
   PreflightResult,
+  ProviderOptions,
   SDKConfig,
   ExplorerConfig,
   ChainId,
   StakingConfig,
 } from "@/types";
-import type { SwapProvider } from "@/swap";
 import {
   checkDeployed,
   ensureWalletReady,
   preflightTransaction,
   sponsoredDetails,
 } from "@/wallet/utils";
+import type { WalletInterface } from "@/wallet/interface";
 import { BaseWallet } from "@/wallet/base";
 import {
   BraavosPreset,
@@ -52,7 +54,7 @@ export { AccountProvider } from "@/wallet/accounts/provider";
 /**
  * Options for creating a Wallet.
  */
-export interface WalletOptions {
+export interface WalletOptions extends ProviderOptions {
   /** Account: either AccountProvider or { signer, accountClass? } */
   account:
     | AccountProvider
@@ -67,10 +69,31 @@ export interface WalletOptions {
   feeMode?: FeeMode;
   /** Default time bounds for paymaster transactions */
   timeBounds?: PaymasterTimeBounds;
-  /** Optional additional swap providers to register on this wallet */
-  swapProviders?: SwapProvider[];
-  /** Optional default swap provider id (must be registered) */
-  defaultSwapProviderId?: string;
+}
+
+/**
+ * Register swap and DCA providers on a wallet from shared options.
+ */
+export function applyProviders(
+  wallet: WalletInterface,
+  options: ProviderOptions
+): void {
+  if (options.swapProviders?.length) {
+    for (const provider of options.swapProviders) {
+      wallet.registerSwapProvider(provider);
+    }
+  }
+  if (options.defaultSwapProviderId) {
+    wallet.setDefaultSwapProvider(options.defaultSwapProviderId);
+  }
+  if (options.dcaProviders?.length) {
+    for (const provider of options.dcaProviders) {
+      wallet.dca().registerProvider(provider);
+    }
+  }
+  if (options.defaultDcaProviderId) {
+    wallet.dca().setDefaultProvider(options.defaultDcaProviderId);
+  }
 }
 
 /**
@@ -92,19 +115,6 @@ export interface WalletOptions {
  * });
  * ```
  */
-/** Internal options for Wallet constructor */
-interface WalletInternals {
-  address: Address;
-  accountProvider: AccountProvider;
-  account: Account;
-  provider: RpcProvider;
-  chainId: ChainId;
-  explorerConfig?: ExplorerConfig;
-  defaultFeeMode: FeeMode;
-  defaultTimeBounds?: PaymasterTimeBounds;
-  stakingConfig: StakingConfig | undefined;
-}
-
 export class Wallet extends BaseWallet {
   private readonly provider: RpcProvider;
   private readonly account: Account;
@@ -113,14 +123,27 @@ export class Wallet extends BaseWallet {
   private readonly explorerConfig: ExplorerConfig | undefined;
   private readonly defaultFeeMode: FeeMode;
   private readonly defaultTimeBounds: PaymasterTimeBounds | undefined;
-
-  /** Cached deployment status (null = not checked yet) */
   private deployedCache: boolean | null = null;
   private deployedCacheExpiresAt = 0;
   private sponsoredDeployLock: Promise<void> | null = null;
 
-  private constructor(options: WalletInternals) {
-    super(options.address, options.stakingConfig);
+  private constructor(options: {
+    address: Address;
+    accountProvider: AccountProvider;
+    account: Account;
+    provider: RpcProvider;
+    chainId: ChainId;
+    explorerConfig?: ExplorerConfig;
+    defaultFeeMode: FeeMode;
+    defaultTimeBounds?: PaymasterTimeBounds;
+    stakingConfig: StakingConfig | undefined;
+    bridgingConfig?: BridgingConfig | undefined;
+  }) {
+    super({
+      address: options.address,
+      stakingConfig: options.stakingConfig,
+      bridgingConfig: options.bridgingConfig,
+    });
     this.accountProvider = options.accountProvider;
     this.account = options.account;
     this.provider = options.provider;
@@ -159,8 +182,6 @@ export class Wallet extends BaseWallet {
       accountAddress: providedAddress,
       feeMode = "user_pays",
       timeBounds,
-      swapProviders,
-      defaultSwapProviderId,
     } = options;
 
     // Build or use provided AccountProvider
@@ -205,16 +226,10 @@ export class Wallet extends BaseWallet {
       defaultFeeMode: feeMode,
       ...(timeBounds && { defaultTimeBounds: timeBounds }),
       stakingConfig: options.config.staking,
+      bridgingConfig: options.config.bridging,
     });
 
-    if (swapProviders?.length) {
-      for (const swapProvider of swapProviders) {
-        wallet.registerSwapProvider(swapProvider);
-      }
-    }
-    if (defaultSwapProviderId) {
-      wallet.setDefaultSwapProvider(defaultSwapProviderId);
-    }
+    applyProviders(wallet, options);
 
     return wallet;
   }
@@ -274,8 +289,7 @@ export class Wallet extends BaseWallet {
     const timeBounds = options.timeBounds ?? this.defaultTimeBounds;
 
     if (feeMode === "sponsored") {
-      const tx = await this.deployPaymasterWith([], timeBounds);
-      return tx;
+      return this.deployPaymasterWith([], timeBounds);
     }
 
     const classHash = this.accountProvider.getClassHash();
@@ -448,29 +462,17 @@ export class Wallet extends BaseWallet {
       ...(paymaster && { paymaster }),
     });
 
-    let transactionHash: string;
-
-    if (ozDeployed) {
-      // OZ is deployed, just call the factory
-      const allCalls = [factoryCall, ...calls];
-      const result = await ozAccount.executePaymasterTransaction(
-        allCalls,
-        sponsoredDetails(timeBounds ?? this.defaultTimeBounds)
-      );
-      transactionHash = result.transaction_hash;
-    } else {
-      // Deploy OZ and call factory in one transaction
-      const ozDeploymentData = await ozProvider.getDeploymentData();
-      const allCalls = [factoryCall, ...calls];
-      const result = await ozAccount.executePaymasterTransaction(
-        allCalls,
-        sponsoredDetails(timeBounds ?? this.defaultTimeBounds, ozDeploymentData)
-      );
-      transactionHash = result.transaction_hash;
-    }
+    const allCalls = [factoryCall, ...calls];
+    const ozDeploymentData = ozDeployed
+      ? undefined
+      : await ozProvider.getDeploymentData();
+    const { transaction_hash } = await ozAccount.executePaymasterTransaction(
+      allCalls,
+      sponsoredDetails(timeBounds ?? this.defaultTimeBounds, ozDeploymentData)
+    );
 
     return new Tx(
-      transactionHash,
+      transaction_hash,
       this.provider,
       this.chainId,
       this.explorerConfig
@@ -481,53 +483,10 @@ export class Wallet extends BaseWallet {
     const feeMode = options.feeMode ?? this.defaultFeeMode;
     const timeBounds = options.timeBounds ?? this.defaultTimeBounds;
 
-    let transactionHash: string;
-
-    if (feeMode === "sponsored") {
-      const deployed = await this.isDeployed();
-      if (deployed) {
-        transactionHash = (
-          await this.account.executePaymasterTransaction(
-            calls,
-            sponsoredDetails(timeBounds)
-          )
-        ).transaction_hash;
-      } else {
-        transactionHash = await this.withSponsoredDeployLock(async () => {
-          const recheckedDeployed = await this.isDeployed();
-          if (recheckedDeployed) {
-            return (
-              await this.account.executePaymasterTransaction(
-                calls,
-                sponsoredDetails(timeBounds)
-              )
-            ).transaction_hash;
-          }
-
-          try {
-            return (await this.deployPaymasterWith(calls, timeBounds)).hash;
-          } catch (error) {
-            if (!isAlreadyDeployedError(error)) {
-              throw error;
-            }
-            return (
-              await this.account.executePaymasterTransaction(
-                calls,
-                sponsoredDetails(timeBounds)
-              )
-            ).transaction_hash;
-          }
-        });
-      }
-    } else {
-      const deployed = await this.isDeployed();
-      if (!deployed) {
-        throw new Error(
-          'Account is not deployed. Call wallet.ensureReady({ deploy: "if_needed" }) before execute() in user_pays mode.'
-        );
-      }
-      transactionHash = (await this.account.execute(calls)).transaction_hash;
-    }
+    const transactionHash =
+      feeMode === "sponsored"
+        ? await this.executeSponsored(calls, timeBounds)
+        : await this.executeUserPays(calls);
 
     return new Tx(
       transactionHash,
@@ -535,6 +494,47 @@ export class Wallet extends BaseWallet {
       this.chainId,
       this.explorerConfig
     );
+  }
+
+  private async executeUserPays(calls: Call[]): Promise<string> {
+    const deployed = await this.isDeployed();
+    if (!deployed) {
+      throw new Error(
+        'Account is not deployed. Call wallet.ensureReady({ deploy: "if_needed" }) before execute() in user_pays mode.'
+      );
+    }
+    return (await this.account.execute(calls)).transaction_hash;
+  }
+
+  private executePaymaster(
+    calls: Call[],
+    timeBounds: PaymasterTimeBounds | undefined
+  ): Promise<string> {
+    return this.account
+      .executePaymasterTransaction(calls, sponsoredDetails(timeBounds))
+      .then((r) => r.transaction_hash);
+  }
+
+  private async executeSponsored(
+    calls: Call[],
+    timeBounds: PaymasterTimeBounds | undefined
+  ): Promise<string> {
+    if (await this.isDeployed()) {
+      return this.executePaymaster(calls, timeBounds);
+    }
+
+    return this.withSponsoredDeployLock(async () => {
+      if (await this.isDeployed()) {
+        return this.executePaymaster(calls, timeBounds);
+      }
+
+      try {
+        return (await this.deployPaymasterWith(calls, timeBounds)).hash;
+      } catch (error) {
+        if (!isAlreadyDeployedError(error)) throw error;
+        return this.executePaymaster(calls, timeBounds);
+      }
+    });
   }
 
   async signMessage(typedData: TypedData): Promise<Signature> {

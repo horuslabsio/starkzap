@@ -1,6 +1,12 @@
 import type { ChainId, Token } from "@/types";
 import type { SwapQuote } from "@/swap/interface";
 import { CallData, cairo, type Call } from "starknet";
+import {
+  getEkuboChainLiteral,
+  getEkuboErrorMessageFromPayload,
+  isRecord,
+} from "@/utils/ekubo";
+import { MAX_U128 } from "@/utils/constants";
 
 export const DEFAULT_EKUBO_API_BASE = "https://prod-api-quoter.ekubo.org";
 
@@ -8,7 +14,6 @@ const EKUBO_QUOTER_CHAIN_IDS = {
   SN_MAIN: "23448594291968334",
   SN_SEPOLIA: "393402133025997798000961",
 } as const;
-const MAX_U128 = 2n ** 128n - 1n;
 const DEFAULT_SLIPPAGE_BPS = 100n;
 const BPS_DENOMINATOR = 10_000n;
 
@@ -38,28 +43,8 @@ export interface EkuboQuoteResponse {
   splits: EkuboQuoteSplit[];
 }
 
-function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-export function getEkuboErrorMessageFromPayload(
-  payload: unknown
-): string | null {
-  if (!isObjectRecord(payload)) {
-    return null;
-  }
-  return typeof payload.error === "string" ? payload.error : null;
-}
-
 export function getEkuboQuoterChainId(chainId: ChainId): string {
-  const literal = chainId.toLiteral();
-  if (literal === "SN_MAIN") {
-    return EKUBO_QUOTER_CHAIN_IDS.SN_MAIN;
-  }
-  if (literal === "SN_SEPOLIA") {
-    return EKUBO_QUOTER_CHAIN_IDS.SN_SEPOLIA;
-  }
-  throw new Error(`Unsupported chain for Ekubo quote: ${literal}`);
+  return EKUBO_QUOTER_CHAIN_IDS[getEkuboChainLiteral(chainId, "quote")];
 }
 
 function parseNonNegativeBigInt(
@@ -79,11 +64,12 @@ function parseNonNegativeBigInt(
 }
 
 function toI129(value: bigint): { mag: bigint; sign: boolean } {
-  const magnitude = value < 0n ? value * -1n : value;
-  if (magnitude > MAX_U128) {
+  const sign = value < 0n;
+  const mag = sign ? -value : value;
+  if (mag > MAX_U128) {
     throw new Error("Value exceeds i129 magnitude range");
   }
-  return { mag: magnitude, sign: value < 0n };
+  return { mag, sign };
 }
 
 function toPoolKeyCalldata(poolKey: EkuboPoolKey): {
@@ -142,7 +128,7 @@ function percentToBps(value: number | null): bigint | null {
 }
 
 export function parseEkuboQuoteResponse(payload: unknown): EkuboQuoteResponse {
-  if (!isObjectRecord(payload)) {
+  if (!isRecord(payload)) {
     throw new Error("Ekubo quote response is malformed");
   }
 
@@ -167,7 +153,7 @@ export function parseEkuboQuoteResponse(payload: unknown): EkuboQuoteResponse {
   }
 
   const splits = splitsRaw.map((split): EkuboQuoteSplit => {
-    if (!isObjectRecord(split) || !Array.isArray(split.route)) {
+    if (!isRecord(split) || !Array.isArray(split.route)) {
       throw new Error("Ekubo split is malformed");
     }
     if (
@@ -178,7 +164,7 @@ export function parseEkuboQuoteResponse(payload: unknown): EkuboQuoteResponse {
     }
 
     const route = split.route.map((step): EkuboRouteStep => {
-      if (!isObjectRecord(step) || !isObjectRecord(step.pool_key)) {
+      if (!isRecord(step) || !isRecord(step.pool_key)) {
         throw new Error("Ekubo route step is malformed");
       }
       const poolKey = step.pool_key;

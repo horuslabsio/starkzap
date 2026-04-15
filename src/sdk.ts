@@ -1,26 +1,40 @@
-import { RpcProvider, type Call, type PaymasterTimeBounds } from "starknet";
-import { ChainId, getChainId, type SDKConfig } from "@/types/config";
+import { type Call, type PaymasterTimeBounds, RpcProvider } from "starknet";
+import {
+  type BridgingConfig,
+  ChainId,
+  type ExplorerConfig,
+  getChainId,
+  type SDKConfig,
+  type StakingConfig,
+} from "@/types/config";
 import type { ConnectWalletOptions, FeeMode } from "@/types/wallet";
-import { networks, type NetworkPreset } from "@/network";
+import { type NetworkPreset, networks } from "@/network";
 import { Wallet } from "@/wallet";
 import type { WalletInterface } from "@/wallet/interface";
-import type { Address, Token, Pool } from "@/types";
-import { assertSafeHttpUrl } from "@/utils";
 import type {
   AccountClassConfig,
   OnboardCartridgeConfig,
   OnboardOptions,
   OnboardResult,
 } from "@/types";
+import {
+  type Address,
+  type BridgeToken,
+  ExternalChain,
+  type Pool,
+  type Token,
+} from "@/types";
+import { assertSafeHttpUrl } from "@/utils";
 import { getStakingPreset, Staking } from "@/staking";
 import { PrivySigner } from "@/signer";
 import {
+  type AccountPresetName,
+  accountPresets,
   ArgentXV050Preset,
   OpenZeppelinPreset,
-  accountPresets,
-  type AccountPresetName,
 } from "@/account";
-import { Payment } from "@/payment";
+import { Payment } from "./payment";
+import { BridgeTokenRepository } from "./bridge";
 
 /** Resolved SDK configuration with required rpcUrl and chainId */
 interface ResolvedConfig extends Omit<SDKConfig, "rpcUrl" | "chainId"> {
@@ -83,6 +97,7 @@ function isWebRuntime(): boolean {
 export class StarkZap {
   private readonly config: ResolvedConfig;
   private readonly provider: RpcProvider;
+  private bridgeTokenRepository: BridgeTokenRepository | null = null;
   private chainValidationPromise: Promise<void> | null = null;
 
   constructor(config: SDKConfig) {
@@ -153,7 +168,17 @@ export class StarkZap {
     return this.config.staking;
   }
 
-  private async ensureProviderChainMatchesConfig(): Promise<void> {
+  protected getResolvedConfig(): Readonly<{
+    bridging?: BridgingConfig;
+    chainId: ChainId;
+    explorer?: ExplorerConfig;
+    rpcUrl: string;
+    staking?: StakingConfig;
+  }> {
+    return this.config;
+  }
+
+  protected async ensureProviderChainMatchesConfig(): Promise<void> {
     if (!this.chainValidationPromise) {
       this.chainValidationPromise = (async () => {
         const providerChainId = await getChainId(this.provider);
@@ -213,20 +238,26 @@ export class StarkZap {
     await this.ensureProviderChainMatchesConfig();
     const {
       account,
+      accountAddress,
       feeMode,
       timeBounds,
       swapProviders,
       defaultSwapProviderId,
+      dcaProviders,
+      defaultDcaProviderId,
     } = options;
 
     return Wallet.create({
       account,
+      ...(accountAddress && { accountAddress }),
       provider: this.provider,
       config: this.config,
       ...(feeMode && { feeMode }),
       ...(timeBounds && { timeBounds }),
       ...(swapProviders && { swapProviders }),
       ...(defaultSwapProviderId && { defaultSwapProviderId }),
+      ...(dcaProviders && { dcaProviders }),
+      ...(defaultDcaProviderId && { defaultDcaProviderId }),
     });
   }
 
@@ -263,6 +294,8 @@ export class StarkZap {
     const timeBounds = options.timeBounds;
     const swapProviders = options.swapProviders;
     const defaultSwapProviderId = options.defaultSwapProviderId;
+    const dcaProviders = options.dcaProviders;
+    const defaultDcaProviderId = options.defaultDcaProviderId;
     const shouldEnsureReady = deploy !== "never";
 
     if (options.strategy === "signer") {
@@ -278,6 +311,8 @@ export class StarkZap {
         ...(timeBounds && { timeBounds }),
         ...(swapProviders && { swapProviders }),
         ...(defaultSwapProviderId && { defaultSwapProviderId }),
+        ...(dcaProviders && { dcaProviders }),
+        ...(defaultDcaProviderId && { defaultDcaProviderId }),
       });
 
       if (shouldEnsureReady) {
@@ -321,6 +356,8 @@ export class StarkZap {
         ...(timeBounds && { timeBounds }),
         ...(swapProviders && { swapProviders }),
         ...(defaultSwapProviderId && { defaultSwapProviderId }),
+        ...(dcaProviders && { dcaProviders }),
+        ...(defaultDcaProviderId && { defaultDcaProviderId }),
       });
 
       if (shouldEnsureReady) {
@@ -353,6 +390,14 @@ export class StarkZap {
       }
       if (defaultSwapProviderId) {
         wallet.setDefaultSwapProvider(defaultSwapProviderId);
+      }
+      if (dcaProviders?.length) {
+        for (const dcaProvider of dcaProviders) {
+          wallet.dca().registerProvider(dcaProvider);
+        }
+      }
+      if (defaultDcaProviderId) {
+        wallet.dca().setDefaultProvider(defaultDcaProviderId);
       }
 
       if (shouldEnsureReady) {
@@ -420,7 +465,8 @@ export class StarkZap {
         chainId: this.config.chainId,
         ...(explorer && { explorer }),
       },
-      this.config.staking
+      this.config.staking,
+      this.config.bridging
     );
     return wallet as CartridgeWalletInterface;
   }
@@ -470,6 +516,41 @@ export class StarkZap {
       staker,
       this.getStakingConfig()
     );
+  }
+
+  /**
+   * Get bridgeable tokens for the SDK's configured Starknet network.
+   *
+   * @remarks
+   * The bridge token API environment is inferred from the configured chain:
+   * - `SN_MAIN` -> `mainnet`
+   * - `SN_SEPOLIA` -> `testnet`
+   *
+   * @param chain - Optional external chain filter.
+   * If omitted, tokens from all supported external chains are returned.
+   *
+   * @returns Array of bridgeable tokens for the selected environment and chain filter.
+   *
+   * @example
+   * ```ts
+   * // All bridgeable tokens for the configured Starknet chain
+   * const allTokens = await sdk.getBridgingTokens();
+   *
+   * // Only Ethereum bridgeable tokens
+   * const ethereumTokens = await sdk.getBridgingTokens(ExternalChain.ETHEREUM);
+   * ```
+   */
+  async getBridgingTokens(chain?: ExternalChain): Promise<BridgeToken[]> {
+    if (!this.bridgeTokenRepository) {
+      this.bridgeTokenRepository = new BridgeTokenRepository();
+    }
+
+    const env = this.config.chainId.isMainnet() ? "mainnet" : "testnet";
+
+    return this.bridgeTokenRepository.getTokens({
+      env,
+      ...(chain ? { chain } : {}),
+    });
   }
 
   /**

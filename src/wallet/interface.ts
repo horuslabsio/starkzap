@@ -10,7 +10,9 @@ import type { Tx } from "@/tx";
 import type { TxBuilder } from "@/tx/builder";
 import type { Erc20 } from "@/erc20";
 import type { Staking } from "@/staking";
-import type { SwapInput, SwapQuote, SwapProvider } from "@/swap";
+import type { LendingClient } from "@/lending";
+import type { DcaClientInterface } from "@/dca";
+import type { PreparedSwap, SwapInput, SwapQuote, SwapProvider } from "@/swap";
 import type {
   Address,
   Amount,
@@ -24,6 +26,7 @@ import type {
   PreflightResult,
   Token,
 } from "@/types";
+import type { BridgeOperatorInterface } from "@/bridge/operator/BridgeOperatorInterface";
 
 /**
  * Interface for a connected Starknet wallet.
@@ -43,7 +46,11 @@ import type {
  * await wallet.execute([...]);
  * ```
  */
-export interface WalletInterface {
+export interface WalletInterface extends BridgeOperatorInterface {
+  // ============================================================
+  // Core — lifecycle, execution, and transaction building
+  // ============================================================
+
   /** The wallet's Starknet address */
   readonly address: Address;
 
@@ -96,12 +103,105 @@ export interface WalletInterface {
   tx(): TxBuilder;
 
   /**
+   * Simulate a transaction to check if it would succeed.
+   */
+  preflight(options: PreflightOptions): Promise<PreflightResult>;
+
+  /**
+   * Estimate the fee for executing calls.
+   */
+  estimateFee(calls: Call[]): Promise<EstimateFeeResponseOverhead>;
+
+  /**
+   * Sign a typed data message (EIP-712 style).
+   * Returns the signature.
+   */
+  signMessage(typedData: TypedData): Promise<Signature>;
+
+  /**
+   * Disconnect the wallet and clean up resources.
+   */
+  disconnect(): Promise<void>;
+
+  // ============================================================
+  // Introspection — wallet state and configuration
+  // ============================================================
+
+  /**
+   * Get the underlying starknet.js Account instance.
+   * Use this for advanced operations not covered by the SDK.
+   */
+  getAccount(): Account;
+
+  /**
+   * Get the RPC provider instance.
+   * Use this for read-only operations like balance queries.
+   */
+  getProvider(): RpcProvider;
+
+  /**
+   * Get the chain ID this wallet is connected to.
+   */
+  getChainId(): ChainId;
+
+  /**
+   * Get the default fee mode for this wallet.
+   */
+  getFeeMode(): FeeMode;
+
+  /**
+   * Get the account class hash.
+   */
+  getClassHash(): string;
+
+  /**
+   * Get the display username when supported (e.g. Cartridge).
+   * Returns undefined for wallets that don't provide this.
+   */
+  username?(): Promise<string | undefined>;
+
+  // ============================================================
+  // ERC20 — token operations
+  // ============================================================
+
+  /**
+   * Gets or creates an Erc20 instance for the given token.
+   */
+  erc20(token: Token): Erc20;
+
+  /**
+   * Transfer ERC20 tokens to one or more recipients.
+   */
+  transfer(
+    token: Token,
+    transfers: { to: Address; amount: Amount }[],
+    options?: ExecuteOptions
+  ): Promise<Tx>;
+
+  /**
+   * Get the wallet's balance of an ERC20 token.
+   */
+  balanceOf(token: Token): Promise<Amount>;
+
+  // ============================================================
+  // Swap — token exchange via pluggable providers
+  // ============================================================
+
+  /**
    * Fetch a quote.
    *
    * Set `request.provider` to a provider instance or provider id.
    * If omitted, uses the wallet default provider.
    */
   getQuote(request: SwapInput): Promise<SwapQuote>;
+
+  /**
+   * Prepare a swap without executing it.
+   *
+   * Advanced API for batching, simulation, or custom execution flows.
+   * Most apps should prefer `wallet.swap(...)`.
+   */
+  prepareSwap(request: SwapInput): Promise<PreparedSwap>;
 
   /**
    * Execute a swap.
@@ -136,79 +236,26 @@ export interface WalletInterface {
    */
   listSwapProviders(): string[];
 
-  /**
-   * Sign a typed data message (EIP-712 style).
-   * Returns the signature.
-   */
-  signMessage(typedData: TypedData): Promise<Signature>;
-
-  /**
-   * Simulate a transaction to check if it would succeed.
-   */
-  preflight(options: PreflightOptions): Promise<PreflightResult>;
-
-  /**
-   * Get the underlying starknet.js Account instance.
-   * Use this for advanced operations not covered by the SDK.
-   */
-  getAccount(): Account;
-
-  /**
-   * Get the RPC provider instance.
-   * Use this for read-only operations like balance queries.
-   */
-  getProvider(): RpcProvider;
-
-  /**
-   * Get the chain ID this wallet is connected to.
-   */
-  getChainId(): ChainId;
-
-  /**
-   * Get the default fee mode for this wallet.
-   */
-  getFeeMode(): FeeMode;
-
-  /**
-   * Get the account class hash.
-   */
-  getClassHash(): string;
-
-  /**
-   * Estimate the fee for executing calls.
-   */
-  estimateFee(calls: Call[]): Promise<EstimateFeeResponseOverhead>;
-
-  /**
-   * Disconnect the wallet and clean up resources.
-   */
-  disconnect(): Promise<void>;
-
   // ============================================================
-  // ERC20 methods
+  // DCA — dollar-cost averaging via pluggable providers
   // ============================================================
 
   /**
-   * Gets or creates an Erc20 instance for the given token.
+   * Access DCA helpers for protocol-native recurring orders and per-cycle swap previews.
    */
-  erc20(token: Token): Erc20;
-
-  /**
-   * Transfer ERC20 tokens to one or more recipients.
-   */
-  transfer(
-    token: Token,
-    transfers: { to: Address; amount: Amount }[],
-    options?: ExecuteOptions
-  ): Promise<Tx>;
-
-  /**
-   * Get the wallet's balance of an ERC20 token.
-   */
-  balanceOf(token: Token): Promise<Amount>;
+  dca(): DcaClientInterface;
 
   // ============================================================
-  // Staking methods
+  // Lending — deposit, borrow, and repay via pluggable providers
+  // ============================================================
+
+  /**
+   * Access lending helpers and protocol connectors (Vesu, etc.).
+   */
+  lending(): LendingClient;
+
+  // ============================================================
+  // Staking — delegation pool operations
   // ============================================================
 
   /**

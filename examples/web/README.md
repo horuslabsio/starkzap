@@ -1,6 +1,6 @@
 # Web Example
 
-Browser-based playground for the SDK. Demonstrates three wallet connection strategies (Cartridge Controller, private key, Privy), account deployment, transfers, sponsored (gasless) transactions, and provider-based token swaps on Starknet Sepolia.
+Browser-based playground for the SDK. Demonstrates three wallet connection strategies (Cartridge Controller, private key, Privy), account deployment, transfers, sponsored (gasless) transactions, provider-based token swaps, and native AVNU or Ekubo DCA flows on Starknet Sepolia.
 
 ## Prerequisites
 
@@ -220,22 +220,92 @@ await wallet.swap(
 );
 ```
 
+## DCA Demo
+
+The connected wallet card also includes a **DCA** panel with:
+
+- recurring backend selector (`AVNU` or `Ekubo`)
+- cycle preview source selector (`AVNU` or `Ekubo`)
+- curated sell/buy token selectors for the example
+- total sell amount and per-cycle sell amount inputs
+- frequency presets
+- optional min/max buy-per-cycle guards when `AVNU` is selected
+- `Preview Cycle` (calls `wallet.dca().previewCycle({ swapProvider, ... })`)
+- `Create DCA` (calls `wallet.dca().create({ provider, ... }, options?)`)
+- `Refresh Orders` + inline `Cancel Order` actions for orders from the selected backend
+
+Important boundary in this demo:
+
+- `wallet.dca().create()`, `getOrders()`, and `cancel()` go through the selected native backend.
+- On Sepolia, the clearest Ekubo DCA demo pairs I could confirm from public quote routes are `ETH -> USDC.e` and `WBTC -> ETH`.
+- The preview selector only estimates a single recurring leg through the wallet's registered swap providers. It does not change the recurring order backend.
+- `AVNU` supports optional min/max buy-per-cycle guards in this demo.
+- `Ekubo` creates a native continuous TWAMM order on supported chains, so the orders list will show `Continuous` instead of a discrete cadence.
+
+Example usage:
+
+```ts
+const cycleQuote = await wallet.dca().previewCycle({
+  swapProvider: "ekubo",
+  sellToken,
+  buyToken,
+  sellAmountPerCycle: Amount.parse("1", sellToken),
+});
+
+await wallet.dca().create(
+  {
+    provider: "avnu",
+    sellToken,
+    buyToken,
+    sellAmount: Amount.parse("10", sellToken),
+    sellAmountPerCycle: Amount.parse("1", sellToken),
+    frequency: "P1D",
+    pricingStrategy: {
+      minBuyAmount: Amount.parse("0.1", buyToken),
+    },
+  },
+  { feeMode: "sponsored" }
+);
+
+await wallet.dca().create({
+  provider: "ekubo",
+  sellToken,
+  buyToken,
+  sellAmount: Amount.parse("10", sellToken),
+  sellAmountPerCycle: Amount.parse("1", sellToken),
+  frequency: "P1D",
+});
+```
+
 ## Configuration
 
 ### Network
 
-The app connects to Starknet Sepolia by default. To change the network, edit the constants at the top of `main.ts`:
+The app connects to Starknet Sepolia by default. You can switch between Sepolia and mainnet from the header selector in the UI; changing the selector reloads the playground into the matching SDK configuration.
 
-```typescript
-const RPC_URL = "https://api.cartridge.gg/x/starknet/sepolia/rpc/v0_9";
+`VITE_NETWORK` still controls the default network used on first load:
 
-const sdk = new StarkZap({
-  rpcUrl: RPC_URL,
-  chainId: ChainId.SEPOLIA,
-});
+```bash
+VITE_NETWORK=mainnet    # "mainnet" or "sepolia" (default)
+VITE_RPC_URL=<url>      # Optional single-network RPC override for the default network
+VITE_MAINNET_RPC_URL=<url>  # Optional mainnet RPC override for UI switching
+VITE_SEPOLIA_RPC_URL=<url>  # Optional sepolia RPC override for UI switching
 ```
 
-For mainnet, change both `RPC_URL` and `ChainId.SEPOLIA` to `ChainId.MAINNET`, and set `AVNU_PAYMASTER_URL` in the server's `.env` to `https://mainnet.paymaster.avnu.fi`.
+If you use the in-app selector and want custom RPC endpoints for both networks, prefer `VITE_MAINNET_RPC_URL` and `VITE_SEPOLIA_RPC_URL`. `VITE_RPC_URL` remains supported for the default env-selected network.
+
+On mainnet, the Vesu market browser can load pool metadata without a connected Starknet wallet. Wallet connection is still required for positions, health checks, and transaction submission.
+
+For mainnet, also set `AVNU_PAYMASTER_URL` in the server's `.env` to `https://mainnet.paymaster.avnu.fi`.
+
+### Bridge
+
+For bridging (Ethereum/Solana → Starknet):
+
+```bash
+VITE_ALCHEMY_API_KEY=<key>   # Enables Ethereum/Solana RPC for gas estimation and balance checks
+VITE_OFT_PUBLIC_KEY=<key>    # LayerZero API key for OFT bridge support (mainnet only)
+```
 
 ### Privy Server URL
 

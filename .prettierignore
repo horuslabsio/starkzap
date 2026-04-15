@@ -10,6 +10,7 @@ docs
 examples/flappy-bird
 .claude
 .codex
+external
 AGENTS.md
 CLAUDE.md
 tasks

@@ -11,7 +11,7 @@ import {
   type ChainId,
   type WalletInterface,
   type StarkZap,
-} from "@starkzap/native";
+} from "starkzap-native";
 import {
   showTransactionToast,
   updateTransactionToast,
@@ -505,6 +505,10 @@ export const useStakingStore = create<StakingState>((set, get) => ({
       positions: {},
       validatorPools: null,
       activePositionKey: null,
+      isLoadingPools: false,
+      isStaking: false,
+      isClaimingRewards: false,
+      isExiting: false,
     });
   },
 }));

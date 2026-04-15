@@ -1,7 +1,7 @@
 import {
+  CairoFelt252,
   type PaymasterOptions,
   RpcProvider,
-  CairoFelt252,
   constants,
 } from "starknet";
 import type { NetworkPreset, NetworkName } from "@/network";
@@ -12,6 +12,10 @@ import type { PaymentConfig } from "@/payment/types";
 export type ChainIdLiteral = "SN_MAIN" | "SN_SEPOLIA";
 
 const VALID_CHAIN_IDS: readonly string[] = ["SN_MAIN", "SN_SEPOLIA"];
+
+function decodeFelt252ToShortString(felt252: string): string {
+  return new CairoFelt252(felt252).decodeUtf8();
+}
 
 /**
  * Represents a Starknet chain identifier.
@@ -84,7 +88,7 @@ export class ChainId {
    * @throws Error if the decoded value is not a supported chain
    */
   static fromFelt252(felt252: string): ChainId {
-    const decoded = new CairoFelt252(felt252).decodeUtf8();
+    const decoded = decodeFelt252ToShortString(felt252);
     if (!VALID_CHAIN_IDS.includes(decoded)) {
       throw new Error(
         `Unsupported chain ID: "${decoded}". Expected one of: ${VALID_CHAIN_IDS.join(", ")}`
@@ -111,6 +115,10 @@ export type ExplorerProvider = "voyager" | "starkscan";
 /**
  * Configuration for building explorer URLs.
  *
+ * Choose **one** of:
+ * - A known provider name (Voyager or Starkscan)
+ * - A custom base URL
+ *
  * @example
  * ```ts
  * // Use a known provider
@@ -120,12 +128,9 @@ export type ExplorerProvider = "voyager" | "starkscan";
  * { baseUrl: "https://my-explorer.com" }
  * ```
  */
-export interface ExplorerConfig {
-  /** Use a known explorer provider */
-  provider?: ExplorerProvider;
-  /** Or provide a custom base URL (takes precedence over provider) */
-  baseUrl?: string;
-}
+export type ExplorerConfig =
+  | { provider: ExplorerProvider; baseUrl?: never }
+  | { baseUrl: string; provider?: never };
 
 /**
  * Configuration for the Staking module.
@@ -149,6 +154,35 @@ export interface ExplorerConfig {
 export interface StakingConfig {
   /** Address of the core staking contract (override default preset) */
   contract: Address;
+}
+
+/**
+ * Configuration for cross-chain bridging features.
+ *
+ * @example
+ * ```ts
+ * const sdk = new StarkZap({
+ *   network: "mainnet",
+ *   bridging: {
+ *     layerZeroApiKey: "your-api-key",
+ *   },
+ * });
+ * ```
+ */
+export interface BridgingConfig {
+  /**
+   * LayerZero API key for OFT bridge support.
+   *
+   * Required only when bridging OFT tokens. The LayerZero Value Transfer API
+   * is mainnet-only -- OFT bridging is not available on testnets.
+   */
+  layerZeroApiKey?: string;
+
+  /** Custom Ethereum JSON-RPC endpoint used for gas estimation in Ethereum bridges. */
+  ethereumRpcUrl?: string;
+
+  /** Custom Solana RPC endpoint. Falls back to the public cluster URL if omitted. */
+  solanaRpcUrl?: string;
 }
 
 /**
@@ -224,4 +258,13 @@ export interface SDKConfig {
    * @see {@link PaymentConfig}
    */
   payment?: PaymentConfig;
+
+  /**
+   * Optional: configuration for cross-chain bridging.
+   *
+   * Required when using OFT (LayerZero) bridge tokens.
+   *
+   * @see {@link BridgingConfig}
+   */
+  bridging?: BridgingConfig;
 }

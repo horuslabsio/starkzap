@@ -2,18 +2,33 @@ name: CI
 
 on:
   pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  checks:
+  test:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
-      HUSKY: "0"
+      CI: true
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,12 +37,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          cache-dependency-path: package-lock.json
           cache: npm
 
       - name: Install
         run: npm ci
 
-      - name: Format Check
+      - name: Format check
         run: npm run -s prettier:check
 
       - name: Lint
@@ -36,13 +52,19 @@ jobs:
       - name: Typecheck
         run: npm run -s typecheck
 
-      - name: Unit Tests
+      - name: Build
+        run: npm run -s build
+
+      - name: Unit tests
         run: npm run -s test
 
   examples:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
-      HUSKY: "0"
+      CI: true
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,6 +73,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          cache-dependency-path: |
+            package-lock.json
+            examples/web/package-lock.json
+            examples/flappy-bird/package-lock.json
+            examples/mobile/package-lock.json
           cache: npm
 
       - name: Install (workspaces)
@@ -59,11 +86,8 @@ jobs:
       - name: Build SDK + Native Package
         run: npm run -s build:all
 
-      - name: Build Web Example
-        run: npm run -s build --workspace examples/web
-
-      - name: Build Flappy-Bird Example
-        run: npm run -s build --workspace examples/flappy-bird
+      - name: Install Mobile Example
+        run: npm ci --prefix examples/mobile
 
       - name: Build Mobile Example (iOS Bundle)
         working-directory: examples/mobile
@@ -72,3 +96,15 @@ jobs:
       - name: Build Mobile Example (Android Bundle)
         working-directory: examples/mobile
         run: npx expo export --platform android --output-dir /tmp/mobile-android-build
+
+      - name: Install Web Example
+        run: npm ci --prefix examples/web
+
+      - name: Build Web Example
+        run: npm run -s build --prefix examples/web
+
+      - name: Install Flappy-Bird Example
+        run: npm ci --prefix examples/flappy-bird
+
+      - name: Build Flappy-Bird Example
+        run: npm run -s build --prefix examples/flappy-bird
