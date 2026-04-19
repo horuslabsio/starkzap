@@ -3,8 +3,8 @@ import type {
   Call,
   EstimateFeeResponseOverhead,
   RpcProvider,
-  TypedData,
   Signature,
+  TypedData,
 } from "starknet";
 import type { Tx } from "@/tx";
 import type { TxBuilder } from "@/tx/builder";
@@ -12,7 +12,7 @@ import type { Erc20 } from "@/erc20";
 import type { Staking } from "@/staking";
 import type { LendingClient } from "@/lending";
 import type { DcaClientInterface } from "@/dca";
-import type { PreparedSwap, SwapInput, SwapQuote, SwapProvider } from "@/swap";
+import type { PreparedSwap, SwapInput, SwapProvider, SwapQuote } from "@/swap";
 import type {
   Address,
   Amount,

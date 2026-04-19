@@ -7,6 +7,7 @@ import type {
   ExecuteOptions,
   ExplorerConfig,
   FeeMode,
+  LoggerConfig,
   PreflightOptions,
   PreflightResult,
   StakingConfig,
@@ -247,6 +248,7 @@ export interface NativeCartridgeWalletOptions {
   feeMode?: SupportedNativeCartridgeFeeMode;
   timeBounds?: PaymasterTimeBounds;
   staking?: StakingConfig;
+  logging?: LoggerConfig;
 }
 
 export class NativeCartridgeWallet extends BaseWallet {
@@ -267,6 +269,7 @@ export class NativeCartridgeWallet extends BaseWallet {
       address: fromAddress(options.session.account.address),
       ...(options.bridging && { bridgingConfig: options.bridging }),
       stakingConfig: staking,
+      ...(options.logging && { logging: options.logging }),
     });
     this.session = options.session;
     this.provider = options.provider;
@@ -464,8 +467,8 @@ export class NativeCartridgeWallet extends BaseWallet {
     }
   }
 
-  async disconnect(): Promise<void> {
-    this.clearCaches();
+  override async disconnect(): Promise<void> {
+    await super.disconnect();
     this.deployedCache = null;
     this.deployedCacheExpiresAt = 0;
     await this.session.disconnect?.();
