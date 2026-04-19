@@ -1,5 +1,5 @@
 export * from "starkzap";
-export { StarkZap } from "@/sdk";
+export { StarkZap } from "starkzap";
 export type { ConnectCartridgeOptions, OnboardOptions } from "@/types/onboard";
 export {
   createCartridgeTsAdapter,
@@ -28,3 +28,8 @@ export type {
   NormalizedCartridgeSessionPolicies,
 } from "@/cartridge/types";
 export { CartridgeRecoveredRpcExecutionError } from "@/wallet/cartridge";
+export {
+  PaymentModal,
+  usePaymentModal,
+  usePaymentSession,
+} from "@chainrails/react-native";
