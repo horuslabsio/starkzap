@@ -12,7 +12,7 @@ import { PaymentModal, usePaymentSession } from "starkzap-native";
 export default function AccountGate() {
   const { connectCartridge, connecting, error, account } =
     useStarknetConnector();
-  const cr = usePaymentSession({
+  const paymentSession = usePaymentSession({
     session_url: `https://chainrails-sdk-server-nu.vercel.app/session?amount=0.1&destinationChain=BASE&recipient=0xda3ecb2e5362295e2b802669dd47127a61d9ce54&token=USDC`,
   });
 
@@ -54,7 +54,7 @@ export default function AccountGate() {
 
         <Pressable
           accessibilityRole="button"
-          onPress={cr.open}
+          onPress={paymentSession.open}
           disabled={connecting}
           style={({ pressed }) => [
             styles.primaryButton,
@@ -71,7 +71,7 @@ export default function AccountGate() {
           <Text style={styles.primaryText}>Buy me a Coffee</Text>
         </Pressable>
       </View>
-      <PaymentModal {...cr} />
+      <PaymentModal {...paymentSession} />
     </KeyboardAvoidingView>
   );
 }

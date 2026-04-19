@@ -14,6 +14,9 @@ type AsyncResult<T extends (...args: never[]) => unknown> = Awaited<
   ReturnType<T>
 >;
 
+// Re-export AsyncResult for use in payment module
+export type { AsyncResult };
+
 // ─── Environment ───────────────────────────────
 
 /** Chainrails API environment. */
@@ -328,3 +331,127 @@ export type PaymentSessionOutput = AsyncResult<
 
 /** Merchant / client information. */
 export type PaymentClientInfo = AsyncResult<typeof crapi.client.getClientInfo>;
+
+// ─── Ramp / Fiat Onramp types ───────────────────
+
+/** Supported ramp/fiat onramp providers. */
+export const PaymentRampProviders = {
+  FONBNK: "FONBNK",
+  ONRAMP_MONEY: "ONRAMP_MONEY",
+} as const;
+
+/** A supported ramp provider. */
+export type PaymentRampProvider =
+  (typeof PaymentRampProviders)[keyof typeof PaymentRampProviders];
+
+/** Ramp order status. */
+export const PaymentRampOrderStatuses = {
+  PENDING: "PENDING",
+  INITIATED: "INITIATED",
+  PROCESSING: "PROCESSING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+  CANCELLED: "CANCELLED",
+  EXPIRED: "EXPIRED",
+  REFUNDED: "REFUNDED",
+} as const;
+
+/** A ramp order status. */
+export type PaymentRampOrderStatus =
+  (typeof PaymentRampOrderStatuses)[keyof typeof PaymentRampOrderStatuses];
+
+/** Payment channel for ramp (bank transfer, card, mobile money, wallet). */
+export interface PaymentRampPaymentChannel {
+  id: string;
+  name: string;
+  type: "BANK_TRANSFER" | "CARD" | "MOBILE_MONEY" | "WALLET";
+  currency: string;
+  minAmount: number;
+  maxAmount: number;
+  fees: {
+    fixed: number;
+    percentage: number;
+  };
+}
+
+/** A ramp quote for fiat-to-crypto conversion. */
+export interface PaymentRampQuote {
+  provider: PaymentRampProvider;
+  fiatCurrency: string;
+  fiatAmount: number;
+  cryptoCurrency: string;
+  cryptoAmount: number;
+  exchangeRate: number;
+  totalFeesFiat: number;
+  totalFeesUsd: number;
+  paymentChannels: PaymentRampPaymentChannel[];
+  rampChain: string;
+  requiresBridge: boolean;
+  bridgeDetails?: {
+    bridgeProvider: string;
+    bridgeFeeUsd: number;
+    sourceChain: string;
+    destinationChain: string;
+  };
+}
+
+/** Input for getting ramp quotes. */
+export type GetRampQuotesInput = Parameters<typeof crapi.ramp.getQuotes>[0];
+
+/** Output of ramp quote request. */
+export type GetRampQuotesOutput = AsyncResult<typeof crapi.ramp.getQuotes>;
+
+/** Input for getting ramp quotes for a session. */
+export type GetRampSessionQuotesInput = Parameters<
+  typeof crapi.ramp.getQuotesForSession
+>[0];
+
+/** Output of session ramp quote request. */
+export type GetRampSessionQuotesOutput = AsyncResult<
+  typeof crapi.ramp.getQuotesForSession
+>;
+
+/** Input for getting supported ramp countries. */
+export type GetRampCountriesInput = Parameters<
+  typeof crapi.ramp.getCountries
+>[0];
+
+/** Output of ramp countries request. */
+export type GetRampCountriesOutput = AsyncResult<
+  typeof crapi.ramp.getCountries
+>;
+
+/** Input for getting supported ramp currencies. */
+export type GetRampCurrenciesInput = Parameters<
+  typeof crapi.ramp.getCurrencies
+>[0];
+
+/** Output of ramp currencies request. */
+export type GetRampCurrenciesOutput = AsyncResult<
+  typeof crapi.ramp.getCurrencies
+>;
+
+/** Input for creating a ramp order. */
+export type CreateRampOrderInput = Parameters<typeof crapi.ramp.createOrder>[0];
+
+/** Output of ramp order creation. */
+export type CreateRampOrderOutput = AsyncResult<typeof crapi.ramp.createOrder>;
+
+/** Input for creating a ramp order for a session. */
+export type CreateRampSessionOrderInput = Parameters<
+  typeof crapi.ramp.createOrderForSession
+>[0];
+
+/** Output of session ramp order creation. */
+export type CreateRampSessionOrderOutput = AsyncResult<
+  typeof crapi.ramp.createOrderForSession
+>;
+
+/** A ramp order. */
+export type PaymentRampOrder = AsyncResult<typeof crapi.ramp.getOrder>;
+
+/** Input for listing ramp orders. */
+export type ListRampOrdersInput = Parameters<typeof crapi.ramp.listOrders>[0];
+
+/** Output of ramp orders list request. */
+export type ListRampOrdersOutput = AsyncResult<typeof crapi.ramp.listOrders>;

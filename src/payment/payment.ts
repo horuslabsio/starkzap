@@ -39,6 +39,7 @@
  */
 
 import { Chainrails, crapi } from "@chainrails/sdk";
+import type { AsyncResult } from "@/payment/types";
 import type {
   PaymentConfig,
   // Quotes
@@ -74,6 +75,22 @@ import type {
   PaymentModalInput,
   // Client
   PaymentClientInfo,
+  // Ramp
+  GetRampQuotesInput,
+  GetRampQuotesOutput,
+  GetRampSessionQuotesInput,
+  GetRampSessionQuotesOutput,
+  GetRampCountriesInput,
+  GetRampCountriesOutput,
+  GetRampCurrenciesInput,
+  GetRampCurrenciesOutput,
+  CreateRampOrderInput,
+  CreateRampOrderOutput,
+  CreateRampSessionOrderInput,
+  CreateRampSessionOrderOutput,
+  PaymentRampOrder,
+  ListRampOrdersInput,
+  ListRampOrdersOutput,
 } from "@/payment/types";
 import { Session } from "./session";
 
@@ -475,5 +492,148 @@ export class Payment {
    */
   async getSessionClientInfo(): Promise<PaymentClientInfo> {
     return crapi.client.getClientInfoForSession();
+  }
+
+  // ══════════════════════════════════════════════
+  // Ramp / Fiat Onramp
+  // ══════════════════════════════════════════════
+
+  /**
+   * Get aggregated fiat-to-crypto quotes from all eligible providers.
+   *
+   * @example
+   * ```ts
+   * const quotes = await payment.ramp.getQuotes({
+   *   fiatCurrency: "USD",
+   *   cryptoAmount: 100,
+   *   destinationChain: "STARKNET",
+   * });
+   * ```
+   */
+  async getRampQuotes(input: GetRampQuotesInput): Promise<GetRampQuotesOutput> {
+    return crapi.ramp.getQuotes(input);
+  }
+
+  /**
+   * Get ramp quotes for a session.
+   */
+  async getRampSessionQuotes(
+    input: GetRampSessionQuotesInput
+  ): Promise<GetRampSessionQuotesOutput> {
+    return crapi.ramp.getQuotesForSession(input);
+  }
+
+  /**
+   * Get all supported countries with currency details.
+   */
+  async getRampCountries(
+    input?: GetRampCountriesInput
+  ): Promise<GetRampCountriesOutput> {
+    return crapi.ramp.getCountries(input);
+  }
+
+  /**
+   * Get ramp countries for a session.
+   */
+  async getRampSessionCountries(
+    input?: GetRampCountriesInput
+  ): Promise<GetRampCountriesOutput> {
+    return crapi.ramp.getCountriesForSession(input);
+  }
+
+  /**
+   * Get a deduplicated list of supported fiat currencies.
+   */
+  async getRampCurrencies(
+    input?: GetRampCurrenciesInput
+  ): Promise<GetRampCurrenciesOutput> {
+    return crapi.ramp.getCurrencies(input);
+  }
+
+  /**
+   * Get ramp currencies for a session.
+   */
+  async getRampSessionCurrencies(
+    input?: GetRampCurrenciesInput
+  ): Promise<GetRampCurrenciesOutput> {
+    return crapi.ramp.getCurrenciesForSession(input);
+  }
+
+  /**
+   * Create a fiat-to-crypto order.
+   * Returns a provider widget URL for the user to complete payment.
+   */
+  async createRampOrder(
+    input: CreateRampOrderInput
+  ): Promise<CreateRampOrderOutput> {
+    return crapi.ramp.createOrder(input);
+  }
+
+  /**
+   * Create a ramp order for a session.
+   */
+  async createRampSessionOrder(
+    input: CreateRampSessionOrderInput
+  ): Promise<CreateRampSessionOrderOutput> {
+    return crapi.ramp.createOrderForSession(input);
+  }
+
+  /**
+   * Get a ramp order by ID.
+   */
+  async getRampOrder(id: string): Promise<PaymentRampOrder> {
+    return crapi.ramp.getOrder(id);
+  }
+
+  /**
+   * Get a ramp order by ID for a session.
+   */
+  async getRampSessionOrder(id: string): Promise<PaymentRampOrder> {
+    return crapi.ramp.getOrderForSession(id);
+  }
+
+  /**
+   * Get a ramp order by intent address.
+   */
+  async getRampOrderByIntent(
+    intentAddress: string
+  ): Promise<AsyncResult<typeof crapi.ramp.getOrderByIntent>> {
+    return crapi.ramp.getOrderByIntent(intentAddress);
+  }
+
+  /**
+   * List all ramp orders (newest first).
+   */
+  async listRampOrders(
+    input?: ListRampOrdersInput
+  ): Promise<ListRampOrdersOutput> {
+    return crapi.ramp.listOrders(input);
+  }
+
+  /**
+   * Confirm a ramp order after the user completes the deposit action.
+   */
+  async confirmRampOrder(
+    id: string
+  ): Promise<AsyncResult<typeof crapi.ramp.confirmOrder>> {
+    return crapi.ramp.confirmOrder(id);
+  }
+
+  /**
+   * Confirm a ramp order for a session.
+   */
+  async confirmRampSessionOrder(
+    id: string
+  ): Promise<AsyncResult<typeof crapi.ramp.confirmOrderForSession>> {
+    return crapi.ramp.confirmOrderForSession(id);
+  }
+
+  /**
+   * Cancel a ramp order if it's still in a cancellable state.
+   */
+  async cancelRampOrder(
+    id: string
+  ): Promise<AsyncResult<typeof crapi.ramp.cancelOrder>> {
+    return crapi.ramp.cancelOrder(id);
   }
 }

@@ -172,6 +172,32 @@ if (success) {
 4. User completes the cross-chain transfer
 5. Modal closes and returns `true` on success, `false` on cancel
 
+### React Native / Mobile
+
+For **React Native** applications, use the `starkzap-native` package which provides native UI components:
+
+```typescript
+import { PaymentModal, usePaymentSession } from "starkzap-native";
+
+// In your component
+const paymentSession = usePaymentSession({
+  session_url: "https://your-server.com/create-session"
+});
+
+return (
+  <PaymentModal {...paymentSession} />
+);
+```
+
+**Available React Native hooks and components:**
+- `usePaymentSession` — Create a payment session
+- `usePaymentModal` — Create and Manage a payment session and modal state with more control
+- `PaymentModal` — Pre-built payment modal component
+
+<Info>
+The React Native payment modal works identically to the web version but uses native UI components for a better mobile experience.
+</Info>
+
 ## Quotes
 
 Quotes tell you how much a cross-chain payment will cost in terms of fees and final amount.
@@ -537,6 +563,65 @@ console.log("Intent Address:", intent.intentAddress);
 
 **Note:** Show the intent address to the user so they can send funds to it.
 
+---
+
+## Fiat Onramp (Ramp)
+
+Chainrails also supports **fiat onramp**, allowing users make payments using fiat currency (credit cards, bank transfers, mobile money).
+
+### Getting Started with Fiat Onramp
+
+```typescript
+import { StarkZap, PaymentChains } from "starkzap";
+
+const sdk = new StarkZap({
+  network: "mainnet",
+  payment: {
+    apiKey: process.env.CHAINRAILS_API_KEY!,
+  },
+});
+
+const payment = sdk.payment();
+
+// Get supported countries
+const countries = await payment.getRampCountries();
+console.log("Supported countries:", countries);
+
+// Get supported fiat currencies
+const currencies = await payment.getRampCurrencies();
+console.log("Supported currencies:", currencies);
+
+// Get quotes for fiat-to-crypto
+const quotes = await payment.getRampQuotes({
+  fiatCurrency: "USD",
+  cryptoAmount: 100,
+  destinationChain: PaymentChains.STARKNET,
+});
+
+console.log("Best quote:", quotes.recommended);
+console.log("All quotes:", quotes.quotes);
+```
+
+### Creating a Fiat Onramp Order
+
+```typescript
+// Create a ramp order
+const order = await payment.createRampOrder({
+  fiatCurrency: "USD",
+  cryptoAmount: 100,
+  destinationChain: PaymentChains.STARKNET,
+  recipient: "0xrecipient...",
+});
+
+console.log("Order ID:", order.id);
+console.log("Widget URL:", order.widgetUrl);
+
+// The widget URL can be opened in a WebView or browser for the user to complete payment
+
+// Check order status
+const orderStatus = await payment.getRampOrder(order.id);
+console.log("Order status:", orderStatus.status);
+```
 
 ## Related Resources
 
