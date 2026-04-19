@@ -197,14 +197,11 @@ export class Payment {
    * - `false` on cancel/close
    */
   checkout(input: PaymentModalInput): PaymentModalHandle {
-    const platform = input.platform ?? "web";
-
     const handle: PaymentModalHandle = {
-      platform,
       sessionToken: input.sessionToken,
       pay: async () => {
         const modalManager = await this.getModalManager();
-        return modalManager.checkout({ ...input, platform }).pay();
+        return modalManager.checkout({ ...input }).pay();
       },
     };
 

@@ -4,12 +4,9 @@ export class PaymentModalManager {
   private activeModalCleanup: (() => void) | null = null;
 
   checkout(input: PaymentModalInput): PaymentModalHandle {
-    const platform = input.platform ?? "web";
-
     const handle: PaymentModalHandle = {
-      platform,
       sessionToken: input.sessionToken,
-      pay: () => this.pay({ ...input, platform }),
+      pay: () => this.pay({ ...input }),
       amount: input.amount || "0",
     };
 
@@ -17,20 +14,8 @@ export class PaymentModalManager {
   }
 
   private async pay(input: PaymentModalInput): Promise<boolean> {
-    const platform = input.platform ?? "web";
-
-    if (platform === "mobile") {
-      return this.payMobile(input);
-    } else if (platform === "web") {
-      this.assertBrowser(platform);
-      return this.payVanillaToken(input);
-    } else {
-      throw new Error(`Unsupported payment.checkout platform "${platform}".`);
-    }
-  }
-
-  private async payMobile(_: PaymentModalInput): Promise<boolean> {
-    throw new Error("Mobile Payments not supported yet.");
+    this.assertBrowser();
+    return this.payVanillaToken(input);
   }
 
   private async payVanillaToken(input: PaymentModalInput): Promise<boolean> {
@@ -90,11 +75,9 @@ export class PaymentModalManager {
     });
   }
 
-  private assertBrowser(platform: string): void {
+  private assertBrowser(): void {
     if (typeof window === "undefined" || typeof document === "undefined") {
-      throw new Error(
-        `payment.modal with platform "${platform}" requires a browser environment.`
-      );
+      throw new Error(`payment.modal requires a browser environment.`);
     }
   }
 

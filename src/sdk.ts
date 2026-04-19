@@ -66,6 +66,13 @@ function isWebRuntime(): boolean {
   return hasDom && !isReactNative;
 }
 
+function isNativeRuntime(): boolean {
+  const isReactNative =
+    typeof navigator !== "undefined" && navigator.product === "ReactNative";
+
+  return isReactNative;
+}
+
 /**
  * Main SDK class for Starknet wallet integration.
  *
@@ -595,7 +602,7 @@ export class StarkZap {
    */
   payment(): Payment {
     if (!this.config.payment) {
-      if (isWebRuntime()) {
+      if (isWebRuntime() || isNativeRuntime()) {
         return new Payment({ apiKey: "" });
       }
       throw new Error(

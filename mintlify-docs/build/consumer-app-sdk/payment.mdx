@@ -153,7 +153,6 @@ The **Payment Modal** provides a beautiful, embedded UI for completing cross-cha
 const modalHandle = payment.checkout({
   sessionToken: session.sessionToken,
   amount: "100.00",
-  platform: "web",  // or "mobile"
 });
 
 // Trigger the modal
@@ -493,7 +492,6 @@ export async function openPaymentModal(sessionToken: string, amount: string) {
   const modal = payment.checkout({
     sessionToken,
     amount,
-    platform: "web",
   });
 
   const success = await modal.pay();

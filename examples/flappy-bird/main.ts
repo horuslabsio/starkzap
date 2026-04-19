@@ -56,7 +56,6 @@ async function openSaveMeCheckout(): Promise<boolean> {
   return sdk
     .payment()
     .checkout({
-      platform: "web",
       sessionToken,
       amount,
     })

@@ -145,12 +145,10 @@ describe("Payment", () => {
   describe("modal", () => {
     it("returns a simple modal handle with pay() for web platform", () => {
       const flow = payment.checkout({
-        platform: "web",
         sessionToken: "tok_123",
         amount: "25.00",
       });
 
-      expect(flow.platform).toBe("web");
       expect(flow.sessionToken).toBe("tok_123");
       expect(flow.amount).toBe("25.00");
       expect(typeof flow.pay).toBe("function");
@@ -161,7 +159,6 @@ describe("Payment", () => {
         sessionToken: "tok_default",
       });
 
-      expect(flow.platform).toBe("web");
       expect(flow.sessionToken).toBe("tok_default");
       expect(flow.amount).toBeUndefined();
     });

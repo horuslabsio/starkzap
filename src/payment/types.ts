@@ -101,7 +101,6 @@ export interface PaymentModalInput {
 
 /** Returned modal handle with a one-call payment trigger. */
 export interface PaymentModalHandle {
-  platform: PaymentModalPlatform;
   sessionToken: string;
   amount?: string;
   pay: () => Promise<boolean>;
