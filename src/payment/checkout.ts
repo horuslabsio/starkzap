@@ -7,7 +7,7 @@ export class PaymentModalManager {
     const handle: PaymentModalHandle = {
       sessionToken: input.sessionToken,
       pay: () => this.pay({ ...input }),
-      amount: input.amount || "0",
+      ...(input.amount && { amount: input.amount }),
     };
 
     return handle;
@@ -74,7 +74,7 @@ export class PaymentModalManager {
 
       modal.setProps({
         sessionToken: input.sessionToken,
-        amount: input.amount || "0",
+        ...(input.amount && { amount: input.amount }),
         isOpen: true,
         isPending: false,
         onCancel: () => closeWith(false),

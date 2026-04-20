@@ -38,60 +38,46 @@
  * ```
  */
 
-import { Chainrails, crapi } from "@chainrails/sdk";
-import type { AsyncResult } from "@/payment/types";
 import type {
-  PaymentConfig,
-  // Quotes
-  GetQuoteFromBridgeInput,
-  GetQuoteFromBridgeOutput,
-  GetQuotesFromAllBridgesInput,
-  GetQuotesFromAllBridgesOutput,
+  CreatePaymentIntentInput,
+  CreateRampOrderInput,
+  CreateRampSessionOrderInput,
+  CreateSessionIntentInput,
+  GetAllSupportedBridgesOutput,
   GetBestQuoteInput,
   GetBestQuoteOutput,
-  GetQuotesInput,
-  GetQuotesOutput,
-  GetSessionQuotesInput,
-  GetSessionQuotesOutput,
-  // Intents
-  PaymentIntent,
-  CreatePaymentIntentInput,
-  CreateSessionIntentInput,
-  ListPaymentIntentsInput,
-  ListPaymentIntentsOutput,
-  PaymentIntentStatus,
-  TriggerProcessingOutput,
+  GetChainBalanceInput,
   // Router
   GetOptimalRouteInput,
-  GetOptimalRouteOutput,
-  GetSupportedBridgesInput,
-  GetSupportedBridgesOutput,
-  GetAllSupportedBridgesOutput,
-  PaymentBridge,
-  // Chains
-  GetSupportedChainsInput,
-  GetChainBalanceInput,
-  PaymentModalHandle,
-  PaymentModalInput,
-  // Client
-  PaymentClientInfo,
+  // Quotes
+  GetQuoteFromBridgeInput,
+  GetQuotesFromAllBridgesInput,
+  GetQuotesInput,
+  GetQuotesOutput,
+  GetRampCountriesInput,
+  GetRampCurrenciesInput,
   // Ramp
   GetRampQuotesInput,
   GetRampQuotesOutput,
   GetRampSessionQuotesInput,
-  GetRampSessionQuotesOutput,
-  GetRampCountriesInput,
-  GetRampCountriesOutput,
-  GetRampCurrenciesInput,
-  GetRampCurrenciesOutput,
-  CreateRampOrderInput,
-  CreateRampOrderOutput,
-  CreateRampSessionOrderInput,
-  CreateRampSessionOrderOutput,
-  PaymentRampOrder,
+  GetSessionQuotesInput,
+  GetSupportedBridgesInput,
+  // Chains
+  GetSupportedChainsInput,
+  ListPaymentIntentsInput,
   ListRampOrdersInput,
-  ListRampOrdersOutput,
+  PaymentBridge,
+  // Client
+  PaymentClientInfo,
+  PaymentConfig,
+  // Intents
+  PaymentIntent,
+  PaymentIntentStatus,
+  PaymentModalHandle,
+  PaymentModalInput,
+  PaymentRampOrder,
 } from "@/payment/types";
+import { Chainrails, crapi } from "@chainrails/sdk";
 import { Session } from "./session";
 
 /**
@@ -117,14 +103,11 @@ export class Payment {
   session: Session;
 
   constructor(config: PaymentConfig) {
-    // Only configure/reconfigure Chainrails if we have a valid API key.
     this.configured = !!config.apiKey;
-    if (config.apiKey) {
-      this.configPromise = Chainrails.config({
-        api_key: config.apiKey,
-        env: config.environment ?? "production",
-      });
-    }
+    this.configPromise = Chainrails.config({
+      api_key: config.apiKey ?? "",
+      env: config.environment ?? "production",
+    });
 
     this.session = new Session(this);
   }
@@ -239,9 +222,7 @@ export class Payment {
   /**
    * Get a quote from a specific bridge.
    */
-  async getQuoteFromBridge(
-    input: GetQuoteFromBridgeInput
-  ): Promise<GetQuoteFromBridgeOutput> {
+  async getQuoteFromBridge(input: GetQuoteFromBridgeInput) {
     await this.ensureConfigured();
     return crapi.quotes.getFromSpecificBridge(input);
   }
@@ -249,9 +230,7 @@ export class Payment {
   /**
    * Get quotes from all available bridges for a route.
    */
-  async getQuotesFromAllBridges(
-    input: GetQuotesFromAllBridgesInput
-  ): Promise<GetQuotesFromAllBridgesOutput> {
+  async getQuotesFromAllBridges(input: GetQuotesFromAllBridgesInput) {
     await this.ensureConfigured();
     return crapi.quotes.getFromAllBridges({
       ...input,
@@ -280,9 +259,7 @@ export class Payment {
   /**
    * Get quotes for the current session (requires prior `createSession` call).
    */
-  async getSessionQuotes(
-    input: GetSessionQuotesInput
-  ): Promise<GetSessionQuotesOutput> {
+  async getSessionQuotes(input: GetSessionQuotesInput) {
     await this.ensureConfigured();
     return crapi.quotes.getAllForSession(input);
   }
@@ -320,9 +297,7 @@ export class Payment {
   /**
    * Create a session-based payment intent.
    */
-  async createSessionIntent(
-    input: CreateSessionIntentInput
-  ): Promise<PaymentIntent> {
+  async createSessionIntent(input: CreateSessionIntentInput) {
     await this.ensureConfigured();
     const result = await crapi.intents.createForSession(input);
     return this.normalizeIntent(result);
@@ -358,9 +333,7 @@ export class Payment {
   /**
    * List all intents with pagination and optional status filter.
    */
-  async listIntents(
-    input?: ListPaymentIntentsInput
-  ): Promise<ListPaymentIntentsOutput> {
+  async listIntents(input?: ListPaymentIntentsInput) {
     await this.ensureConfigured();
     const result = await crapi.intents.getAll(input ?? {});
     // Normalize intents in the response without mutating upstream
@@ -384,10 +357,7 @@ export class Payment {
   /**
    * Update the status of a payment intent.
    */
-  async updateIntentStatus(
-    id: string,
-    status: PaymentIntentStatus
-  ): Promise<PaymentIntent> {
+  async updateIntentStatus(id: string, status: PaymentIntentStatus) {
     await this.ensureConfigured();
     const result = await crapi.intents.update(id, { status });
     return this.normalizeIntent(result);
@@ -396,9 +366,7 @@ export class Payment {
   /**
    * Trigger processing (relay / settlement) of a funded intent.
    */
-  async triggerProcessing(
-    intentAddress: `0x${string}`
-  ): Promise<TriggerProcessingOutput> {
+  async triggerProcessing(intentAddress: `0x${string}`) {
     await this.ensureConfigured();
     return crapi.intents.triggerProcessing(intentAddress);
   }
@@ -406,9 +374,7 @@ export class Payment {
   /**
    * Trigger processing for a session-based intent.
    */
-  async triggerSessionProcessing(
-    intentAddress: `0x${string}`
-  ): Promise<TriggerProcessingOutput> {
+  async triggerSessionProcessing(intentAddress: `0x${string}`) {
     await this.ensureConfigured();
     return crapi.intents.triggerProcessingForSession(intentAddress);
   }
@@ -420,9 +386,7 @@ export class Payment {
   /**
    * Find the optimal cross-chain route (bridge + fees).
    */
-  async getOptimalRoute(
-    input: GetOptimalRouteInput
-  ): Promise<GetOptimalRouteOutput> {
+  async getOptimalRoute(input: GetOptimalRouteInput) {
     await this.ensureConfigured();
     return crapi.router.getOptimalRoutes(input);
   }
@@ -438,9 +402,7 @@ export class Payment {
   /**
    * Get bridges available for a specific source → destination route.
    */
-  async getSupportedBridges(
-    input: GetSupportedBridgesInput
-  ): Promise<GetSupportedBridgesOutput> {
+  async getSupportedBridges(input: GetSupportedBridgesInput) {
     await this.ensureConfigured();
     return crapi.router.getSupportedBridges(input);
   }
@@ -448,9 +410,7 @@ export class Payment {
   /**
    * Get all routes supported by a specific bridge.
    */
-  async getSupportedRoutes(
-    bridge: PaymentBridge
-  ): Promise<GetOptimalRouteInput[]> {
+  async getSupportedRoutes(bridge: PaymentBridge) {
     await this.ensureConfigured();
     return crapi.router.getSupportedRoutes(bridge);
   }
@@ -519,9 +479,7 @@ export class Payment {
   /**
    * Get ramp quotes for a session.
    */
-  async getRampSessionQuotes(
-    input: GetRampSessionQuotesInput
-  ): Promise<GetRampSessionQuotesOutput> {
+  async getRampSessionQuotes(input: GetRampSessionQuotesInput) {
     await this.ensureConfigured();
     return crapi.ramp.getQuotesForSession(input);
   }
@@ -529,9 +487,7 @@ export class Payment {
   /**
    * Get all supported countries with currency details.
    */
-  async getRampCountries(
-    input?: GetRampCountriesInput
-  ): Promise<GetRampCountriesOutput> {
+  async getRampCountries(input?: GetRampCountriesInput) {
     await this.ensureConfigured();
     return crapi.ramp.getCountries(input);
   }
@@ -539,9 +495,7 @@ export class Payment {
   /**
    * Get ramp countries for a session.
    */
-  async getRampSessionCountries(
-    input?: GetRampCountriesInput
-  ): Promise<GetRampCountriesOutput> {
+  async getRampSessionCountries(input?: GetRampCountriesInput) {
     await this.ensureConfigured();
     return crapi.ramp.getCountriesForSession(input);
   }
@@ -549,9 +503,7 @@ export class Payment {
   /**
    * Get a deduplicated list of supported fiat currencies.
    */
-  async getRampCurrencies(
-    input?: GetRampCurrenciesInput
-  ): Promise<GetRampCurrenciesOutput> {
+  async getRampCurrencies(input?: GetRampCurrenciesInput) {
     await this.ensureConfigured();
     return crapi.ramp.getCurrencies(input);
   }
@@ -559,9 +511,7 @@ export class Payment {
   /**
    * Get ramp currencies for a session.
    */
-  async getRampSessionCurrencies(
-    input?: GetRampCurrenciesInput
-  ): Promise<GetRampCurrenciesOutput> {
+  async getRampSessionCurrencies(input?: GetRampCurrenciesInput) {
     await this.ensureConfigured();
     return crapi.ramp.getCurrenciesForSession(input);
   }
@@ -570,9 +520,7 @@ export class Payment {
    * Create a fiat-to-crypto order.
    * Returns a provider widget URL for the user to complete payment.
    */
-  async createRampOrder(
-    input: CreateRampOrderInput
-  ): Promise<CreateRampOrderOutput> {
+  async createRampOrder(input: CreateRampOrderInput) {
     await this.ensureConfigured();
     return crapi.ramp.createOrder(input);
   }
@@ -580,9 +528,7 @@ export class Payment {
   /**
    * Create a ramp order for a session.
    */
-  async createRampSessionOrder(
-    input: CreateRampSessionOrderInput
-  ): Promise<CreateRampSessionOrderOutput> {
+  async createRampSessionOrder(input: CreateRampSessionOrderInput) {
     await this.ensureConfigured();
     return crapi.ramp.createOrderForSession(input);
   }
@@ -606,9 +552,7 @@ export class Payment {
   /**
    * Get a ramp order by intent address.
    */
-  async getRampOrderByIntent(
-    intentAddress: string
-  ): Promise<AsyncResult<typeof crapi.ramp.getOrderByIntent>> {
+  async getRampOrderByIntent(intentAddress: string) {
     await this.ensureConfigured();
     return crapi.ramp.getOrderByIntent(intentAddress);
   }
@@ -616,9 +560,7 @@ export class Payment {
   /**
    * List all ramp orders (newest first).
    */
-  async listRampOrders(
-    input?: ListRampOrdersInput
-  ): Promise<ListRampOrdersOutput> {
+  async listRampOrders(input?: ListRampOrdersInput) {
     await this.ensureConfigured();
     return crapi.ramp.listOrders(input);
   }
@@ -626,9 +568,7 @@ export class Payment {
   /**
    * Confirm a ramp order after the user completes the deposit action.
    */
-  async confirmRampOrder(
-    id: string
-  ): Promise<AsyncResult<typeof crapi.ramp.confirmOrder>> {
+  async confirmRampOrder(id: string) {
     await this.ensureConfigured();
     return crapi.ramp.confirmOrder(id);
   }
@@ -636,9 +576,7 @@ export class Payment {
   /**
    * Confirm a ramp order for a session.
    */
-  async confirmRampSessionOrder(
-    id: string
-  ): Promise<AsyncResult<typeof crapi.ramp.confirmOrderForSession>> {
+  async confirmRampSessionOrder(id: string) {
     await this.ensureConfigured();
     return crapi.ramp.confirmOrderForSession(id);
   }
@@ -646,9 +584,7 @@ export class Payment {
   /**
    * Cancel a ramp order if it's still in a cancellable state.
    */
-  async cancelRampOrder(
-    id: string
-  ): Promise<AsyncResult<typeof crapi.ramp.cancelOrder>> {
+  async cancelRampOrder(id: string) {
     await this.ensureConfigured();
     return crapi.ramp.cancelOrder(id);
   }

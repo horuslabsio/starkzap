@@ -22,8 +22,7 @@
     "moduleDetection": "force",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "noEmit": false
+    "skipLibCheck": true
   },
   "tsc-alias": {
     "resolveFullPaths": true,
