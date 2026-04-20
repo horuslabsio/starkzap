@@ -21,41 +21,19 @@ const TEST_CONFIG: PaymentConfig = {
 };
 
 const MOCK_INTENT: PaymentIntent = {
-  id: 1,
-  client_id: "client_1",
+  id: "1",
   sender: "0xaaa",
   recipient: "0xbbb",
-  refund_address: "0xaaa",
-  initialAmount: "10000000",
-  fees_in_usd: "0.10",
-  app_fee_in_usd: "0.05",
-  total_amount_in_usd: "10.15",
-  total_amount_in_asset_token: "10150000",
-  fees_in_asset_token: "100000",
-  app_fee_in_asset_token: "50000",
-  asset_token_symbol: "USDC",
-  asset_token_decimals: 6,
-  slippage: "0.005",
+  refundAddress: "0xaaa",
+  intentAddress: "0xintent",
+  intentStatus: "PENDING",
   tokenIn: "0xtokenin",
-  tokenOut: "0xtokenout",
-  source_chain: "BASE_MAINNET",
-  destination_chain: "STARKNET_MAINNET",
-  intent_address: "0xintent",
-  destination_intent_address: "0xdest_intent",
-  intent_nonce: 1,
-  intent_status: "PENDING",
-  coordinator: "0xcoord",
-  bridger: "ACROSS",
-  bridgeExtraData: "0x",
-  relayer: "0xrelayer",
-  relayer_claimed: false,
-  needs_relay: true,
-  paymaster_used: false,
-  mode: "standard",
-  tx_hash: null,
-  expires_at: "2026-03-01T00:00:00Z",
-  created_at: "2026-02-25T00:00:00Z",
-  updated_at: "2026-02-25T00:00:00Z",
+  amountSymbol: "USDC",
+  amount: "1000",
+  sourceChain: "BASE_MAINNET",
+  destinationChain: "STARKNET_MAINNET",
+  expiresAt: "2026-03-01T00:00:00Z",
+  createdAt: "2026-02-25T00:00:00Z",
   metadata: { reference: "order-42", description: "Test order" },
 };
 
@@ -120,7 +98,8 @@ describe("Payment", () => {
       const sessionSpy = vi
         .spyOn(crapi.auth, "getSessionToken")
         .mockResolvedValue({
-          sessionToken: "tok_123",
+          sessionToken:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZXNzaW9uXzEyMyIsImV4cCI6MTc0NDUxMjAwMH0.mock_signature",
           amount: "25.00",
         } as never);
 
@@ -137,29 +116,36 @@ describe("Payment", () => {
         destinationChain: "STARKNET",
         amount: "25.00",
       });
-      expect(result.sessionToken).toBe("tok_123");
-      expect(result.amount).toBe("25.00");
+      expect(result.getSessionToken()).toMatch(
+        /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
+      );
     });
   });
 
   describe("modal", () => {
     it("returns a simple modal handle with pay() for web platform", () => {
       const flow = payment.checkout({
-        sessionToken: "tok_123",
+        sessionToken:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b2tfMTIzIiwiZXhwIjoxNzQ0NTEyMDAwfQ.mock_signature",
         amount: "25.00",
       });
 
-      expect(flow.sessionToken).toBe("tok_123");
+      expect(flow.sessionToken).toMatch(
+        /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
+      );
       expect(flow.amount).toBe("25.00");
       expect(typeof flow.pay).toBe("function");
     });
 
     it("defaults platform to web when not specified", () => {
       const flow = payment.checkout({
-        sessionToken: "tok_default",
+        sessionToken:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b2tfZGVmYXVsdCIsImV4cCI6MTc0NDUxMjAwMH0.mock_signature",
       });
 
-      expect(flow.sessionToken).toBe("tok_default");
+      expect(flow.sessionToken).toMatch(
+        /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
+      );
       expect(flow.amount).toBeUndefined();
     });
   });
@@ -255,10 +241,10 @@ describe("Payment", () => {
         amount: "10",
         tokenIn: "0xtokenin",
         amountSymbol: "USDC",
-        source_chain: "BASE",
-        destination_chain: "STARKNET",
+        sourceChain: "BASE",
+        destinationChain: "STARKNET",
         recipient: "0xrecipient",
-        refund_address: "0xsender",
+        refundAddress: "0xsender",
         metadata: { description: "Test", reference: "ref-1" },
       });
 
@@ -281,7 +267,7 @@ describe("Payment", () => {
       const result = await payment.getIntent("42");
 
       expect(getByIdSpy).toHaveBeenCalledWith("42");
-      expect(result.intent_status).toBe("PENDING");
+      expect(result.intentStatus).toBe("PENDING");
     });
   });
 
