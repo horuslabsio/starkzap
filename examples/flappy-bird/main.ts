@@ -96,7 +96,8 @@ async function onSaveMePay(): Promise<void> {
   try {
     const paid = await openSaveMeCheckout();
     closeSaveMeModal(paid);
-  } catch {
+  } catch (err) {
+    console.error("save-me payment failed:", err);
     closeSaveMeModal(false);
   }
 }

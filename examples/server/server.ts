@@ -223,6 +223,7 @@ app.get("/session-token", async (_, res) => {
     return res.json(session);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
+    console.error("[SessionToken] Error:", message);
     return res.status(500).json({ error: message });
   }
 });

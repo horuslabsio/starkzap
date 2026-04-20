@@ -116,7 +116,7 @@ describe("Payment", () => {
         destinationChain: "STARKNET",
         amount: "25.00",
       });
-      expect(result.getSessionToken()).toMatch(
+      expect(result.sessionToken).toMatch(
         /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
       );
     });

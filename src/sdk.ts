@@ -108,6 +108,7 @@ export class StarkZap {
   private readonly provider: RpcProvider;
   private bridgeTokenRepository: BridgeTokenRepository | null = null;
   private chainValidationPromise: Promise<void> | null = null;
+  private paymentInstance: Payment | null = null;
 
   constructor(config: SDKConfig) {
     this.config = this.resolveConfig(config);
@@ -609,13 +610,19 @@ export class StarkZap {
   payment(): Payment {
     if (!this.config.payment) {
       if (isWebRuntime() || isNativeRuntime()) {
-        return new Payment({ apiKey: "" });
+        if (!this.paymentInstance) {
+          this.paymentInstance = new Payment({ apiKey: "" });
+        }
+        return this.paymentInstance;
       }
       throw new Error(
         "Payment is not configured. Provide a `payment` config with an `apiKey` when creating StarkZap."
       );
     }
-    return new Payment(this.config.payment);
+    if (!this.paymentInstance) {
+      this.paymentInstance = new Payment(this.config.payment);
+    }
+    return this.paymentInstance;
   }
 
   /**

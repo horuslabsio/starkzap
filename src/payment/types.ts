@@ -242,7 +242,7 @@ export interface CreatePaymentIntentInput {
   /** Input token address */
   tokenIn: `0x${string}`;
   /** Token symbol (e.g., "USDC") */
-  amountSymbol: string;
+  amountSymbol: PaymentTokenSymbol;
   /** Source chain */
   sourceChain: string;
   /** Destination chain */

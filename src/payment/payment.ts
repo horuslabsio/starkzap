@@ -107,18 +107,41 @@ export class Payment {
 
   /** Stored session token from the most recent `createSession` call. */
   private currentSessionToken: string | null = null;
+
+  /** Whether this Payment instance was configured with an apiKey. */
+  private readonly configured: boolean;
+
+  /** Promise that resolves when Chainrails is configured. */
+  private configPromise: Promise<unknown> | null = null;
+
   session: Session;
 
   constructor(config: PaymentConfig) {
     // Only configure/reconfigure Chainrails if we have a valid API key.
+    this.configured = !!config.apiKey;
     if (config.apiKey) {
-      void Chainrails.config({
+      this.configPromise = Chainrails.config({
         api_key: config.apiKey,
         env: config.environment ?? "production",
       });
     }
 
     this.session = new Session(this);
+  }
+
+  /**
+   * Ensure Chainrails is configured before making API calls.
+   * Throws if Payment was not configured with an apiKey.
+   */
+  async ensureConfigured(): Promise<void> {
+    if (!this.configured) {
+      throw new Error(
+        "Payment was not configured with an apiKey — either pass `payment: { apiKey }` to `new StarkZap()` or only use `checkout()` with a server-minted session token"
+      );
+    }
+    if (this.configPromise) {
+      await this.configPromise;
+    }
   }
 
   getSessionToken(): string | null {
@@ -187,27 +210,7 @@ export class Payment {
   // ══════════════════════════════════════════════
 
   /**
-   * Create a payment session for a recipient.
-   *
-   * Sessions bind a recipient + token + amount so that payers
-   * only need to choose a source chain & token.
-   *
-   * @returns Session token + amount (to be used in subsequent session calls).
-   *
-   * @example
-   * ```ts
-   * const session = await payment.session.create({
-   *   recipient: "0xRecipient...",
-   *   token: "USDC",
-   *   destinationChain: "STARKNET",
-   *   amount: "25.00",
-   * });
-   * // Use session.sessionToken for session-scoped calls
-   * ```
-   */
-
-  /**
-   * Create a platform-aware payment modal handle.
+   * Create a payment modal handle.
    *
    * Call `.pay()` on the returned object to open the modal and resolve with:
    * - `true` on successful payment
@@ -239,6 +242,7 @@ export class Payment {
   async getQuoteFromBridge(
     input: GetQuoteFromBridgeInput
   ): Promise<GetQuoteFromBridgeOutput> {
+    await this.ensureConfigured();
     return crapi.quotes.getFromSpecificBridge(input);
   }
 
@@ -248,16 +252,18 @@ export class Payment {
   async getQuotesFromAllBridges(
     input: GetQuotesFromAllBridgesInput
   ): Promise<GetQuotesFromAllBridgesOutput> {
+    await this.ensureConfigured();
     return crapi.quotes.getFromAllBridges({
       ...input,
       excludeBridges: input.excludeBridges ?? "",
-    } as Parameters<typeof crapi.quotes.getFromAllBridges>[0]);
+    });
   }
 
   /**
    * Get the single best quote across all bridges for a route.
    */
   async getBestQuote(input: GetBestQuoteInput): Promise<GetBestQuoteOutput> {
+    await this.ensureConfigured();
     return crapi.quotes.getBestAcrossBridges(input);
   }
 
@@ -267,6 +273,7 @@ export class Payment {
    * This is the easiest way to discover every path a payer can use.
    */
   async getQuotes(input: GetQuotesInput): Promise<GetQuotesOutput> {
+    await this.ensureConfigured();
     return crapi.quotes.getAll(input);
   }
 
@@ -276,6 +283,7 @@ export class Payment {
   async getSessionQuotes(
     input: GetSessionQuotesInput
   ): Promise<GetSessionQuotesOutput> {
+    await this.ensureConfigured();
     return crapi.quotes.getAllForSession(input);
   }
 
@@ -295,17 +303,7 @@ export class Payment {
       sender: input.sender,
       amount: input.amount,
       tokenIn: input.tokenIn,
-      amountSymbol: input.amountSymbol as
-        | "USDC"
-        | "USDT"
-        | "DAI"
-        | "BUSD"
-        | "EURC"
-        | "ETH"
-        | "WETH"
-        | "STRK"
-        | "BNB"
-        | "LORDS",
+      amountSymbol: input.amountSymbol,
       source_chain: input.sourceChain,
       destination_chain: input.destinationChain,
       recipient: input.recipient,
@@ -313,26 +311,10 @@ export class Payment {
       metadata: input.metadata,
     };
 
-    // Call Chainrails API with snake_case
+    // Call Chainrails API with snake_case and normalize the response
+    await this.ensureConfigured();
     const result = await crapi.intents.create(snakeCaseInput);
-
-    // Convert snake_case response to camelCase
-    return {
-      id: result.id,
-      intentAddress: result.intent_address,
-      intentStatus: result.intent_status,
-      sender: result.sender,
-      recipient: result.recipient,
-      tokenIn: result.token_in,
-      amountSymbol: result.amount_symbol,
-      amount: result.amount,
-      sourceChain: result.source_chain,
-      destinationChain: result.destination_chain,
-      refundAddress: result.refund_address,
-      metadata: result.metadata,
-      createdAt: result.created_at,
-      expiresAt: result.expires_at,
-    };
+    return this.normalizeIntent(result);
   }
 
   /**
@@ -341,6 +323,7 @@ export class Payment {
   async createSessionIntent(
     input: CreateSessionIntentInput
   ): Promise<PaymentIntent> {
+    await this.ensureConfigured();
     const result = await crapi.intents.createForSession(input);
     return this.normalizeIntent(result);
   }
@@ -349,6 +332,7 @@ export class Payment {
    * Get a payment intent by its ID.
    */
   async getIntent(id: string): Promise<PaymentIntent> {
+    await this.ensureConfigured();
     const result = await crapi.intents.getById(id);
     return this.normalizeIntent(result);
   }
@@ -357,6 +341,7 @@ export class Payment {
    * Get a payment intent by its on-chain address.
    */
   async getIntentByAddress(address: `0x${string}`): Promise<PaymentIntent> {
+    await this.ensureConfigured();
     const result = await crapi.intents.getForAddress(address);
     return this.normalizeIntent(result);
   }
@@ -365,8 +350,9 @@ export class Payment {
    * Get all intents for a sender address.
    */
   async getIntentsForSender(sender: `0x${string}`): Promise<PaymentIntent[]> {
+    await this.ensureConfigured();
     const results = await crapi.intents.getForSender(sender);
-    return results.map(this.normalizeIntent);
+    return results.map((result) => this.normalizeIntent(result));
   }
 
   /**
@@ -375,20 +361,24 @@ export class Payment {
   async listIntents(
     input?: ListPaymentIntentsInput
   ): Promise<ListPaymentIntentsOutput> {
+    await this.ensureConfigured();
     const result = await crapi.intents.getAll(input ?? {});
-    // Normalize intents in the response
-    if (result.intents) {
-      result.intents = result.intents.map(this.normalizeIntent);
-    }
-    return result;
+    // Normalize intents in the response without mutating upstream
+    return {
+      ...result,
+      intents: result.intents?.map((result) => this.normalizeIntent(result)),
+    };
   }
 
   /**
    * Get all intents for the current session.
    */
   async getSessionIntents(address: `0x${string}`): Promise<PaymentIntent[]> {
+    await this.ensureConfigured();
     const results = await crapi.intents.getForSession(address);
-    return results.map(this.normalizeIntent);
+    return results.map((result: Parameters<typeof this.normalizeIntent>[0]) =>
+      this.normalizeIntent(result)
+    );
   }
 
   /**
@@ -398,6 +388,7 @@ export class Payment {
     id: string,
     status: PaymentIntentStatus
   ): Promise<PaymentIntent> {
+    await this.ensureConfigured();
     const result = await crapi.intents.update(id, { status });
     return this.normalizeIntent(result);
   }
@@ -408,6 +399,7 @@ export class Payment {
   async triggerProcessing(
     intentAddress: `0x${string}`
   ): Promise<TriggerProcessingOutput> {
+    await this.ensureConfigured();
     return crapi.intents.triggerProcessing(intentAddress);
   }
 
@@ -417,6 +409,7 @@ export class Payment {
   async triggerSessionProcessing(
     intentAddress: `0x${string}`
   ): Promise<TriggerProcessingOutput> {
+    await this.ensureConfigured();
     return crapi.intents.triggerProcessingForSession(intentAddress);
   }
 
@@ -430,6 +423,7 @@ export class Payment {
   async getOptimalRoute(
     input: GetOptimalRouteInput
   ): Promise<GetOptimalRouteOutput> {
+    await this.ensureConfigured();
     return crapi.router.getOptimalRoutes(input);
   }
 
@@ -437,6 +431,7 @@ export class Payment {
    * Get all bridge protocols supported by Chainrails.
    */
   async getAllSupportedBridges(): Promise<GetAllSupportedBridgesOutput> {
+    await this.ensureConfigured();
     return crapi.router.getAllSupportedBridges();
   }
 
@@ -446,6 +441,7 @@ export class Payment {
   async getSupportedBridges(
     input: GetSupportedBridgesInput
   ): Promise<GetSupportedBridgesOutput> {
+    await this.ensureConfigured();
     return crapi.router.getSupportedBridges(input);
   }
 
@@ -455,6 +451,7 @@ export class Payment {
   async getSupportedRoutes(
     bridge: PaymentBridge
   ): Promise<GetOptimalRouteInput[]> {
+    await this.ensureConfigured();
     return crapi.router.getSupportedRoutes(bridge);
   }
 
@@ -466,6 +463,7 @@ export class Payment {
    * Get chains supported for payments.
    */
   async getSupportedChains(input?: GetSupportedChainsInput): Promise<string[]> {
+    await this.ensureConfigured();
     return crapi.chains.getSupported(input);
   }
 
@@ -473,6 +471,7 @@ export class Payment {
    * Get token balances for an address across chains.
    */
   async getBalance(input: GetChainBalanceInput): Promise<string> {
+    await this.ensureConfigured();
     return crapi.chains.getBalance(input);
   }
 
@@ -484,6 +483,7 @@ export class Payment {
    * Get merchant/client account information.
    */
   async getClientInfo(): Promise<PaymentClientInfo> {
+    await this.ensureConfigured();
     return crapi.client.getClientInfo();
   }
 
@@ -491,6 +491,7 @@ export class Payment {
    * Get client info for the current session.
    */
   async getSessionClientInfo(): Promise<PaymentClientInfo> {
+    await this.ensureConfigured();
     return crapi.client.getClientInfoForSession();
   }
 
@@ -511,6 +512,7 @@ export class Payment {
    * ```
    */
   async getRampQuotes(input: GetRampQuotesInput): Promise<GetRampQuotesOutput> {
+    await this.ensureConfigured();
     return crapi.ramp.getQuotes(input);
   }
 
@@ -520,6 +522,7 @@ export class Payment {
   async getRampSessionQuotes(
     input: GetRampSessionQuotesInput
   ): Promise<GetRampSessionQuotesOutput> {
+    await this.ensureConfigured();
     return crapi.ramp.getQuotesForSession(input);
   }
 
@@ -529,6 +532,7 @@ export class Payment {
   async getRampCountries(
     input?: GetRampCountriesInput
   ): Promise<GetRampCountriesOutput> {
+    await this.ensureConfigured();
     return crapi.ramp.getCountries(input);
   }
 
@@ -538,6 +542,7 @@ export class Payment {
   async getRampSessionCountries(
     input?: GetRampCountriesInput
   ): Promise<GetRampCountriesOutput> {
+    await this.ensureConfigured();
     return crapi.ramp.getCountriesForSession(input);
   }
 
@@ -547,6 +552,7 @@ export class Payment {
   async getRampCurrencies(
     input?: GetRampCurrenciesInput
   ): Promise<GetRampCurrenciesOutput> {
+    await this.ensureConfigured();
     return crapi.ramp.getCurrencies(input);
   }
 
@@ -556,6 +562,7 @@ export class Payment {
   async getRampSessionCurrencies(
     input?: GetRampCurrenciesInput
   ): Promise<GetRampCurrenciesOutput> {
+    await this.ensureConfigured();
     return crapi.ramp.getCurrenciesForSession(input);
   }
 
@@ -566,6 +573,7 @@ export class Payment {
   async createRampOrder(
     input: CreateRampOrderInput
   ): Promise<CreateRampOrderOutput> {
+    await this.ensureConfigured();
     return crapi.ramp.createOrder(input);
   }
 
@@ -575,6 +583,7 @@ export class Payment {
   async createRampSessionOrder(
     input: CreateRampSessionOrderInput
   ): Promise<CreateRampSessionOrderOutput> {
+    await this.ensureConfigured();
     return crapi.ramp.createOrderForSession(input);
   }
 
@@ -582,6 +591,7 @@ export class Payment {
    * Get a ramp order by ID.
    */
   async getRampOrder(id: string): Promise<PaymentRampOrder> {
+    await this.ensureConfigured();
     return crapi.ramp.getOrder(id);
   }
 
@@ -589,6 +599,7 @@ export class Payment {
    * Get a ramp order by ID for a session.
    */
   async getRampSessionOrder(id: string): Promise<PaymentRampOrder> {
+    await this.ensureConfigured();
     return crapi.ramp.getOrderForSession(id);
   }
 
@@ -598,6 +609,7 @@ export class Payment {
   async getRampOrderByIntent(
     intentAddress: string
   ): Promise<AsyncResult<typeof crapi.ramp.getOrderByIntent>> {
+    await this.ensureConfigured();
     return crapi.ramp.getOrderByIntent(intentAddress);
   }
 
@@ -607,6 +619,7 @@ export class Payment {
   async listRampOrders(
     input?: ListRampOrdersInput
   ): Promise<ListRampOrdersOutput> {
+    await this.ensureConfigured();
     return crapi.ramp.listOrders(input);
   }
 
@@ -616,6 +629,7 @@ export class Payment {
   async confirmRampOrder(
     id: string
   ): Promise<AsyncResult<typeof crapi.ramp.confirmOrder>> {
+    await this.ensureConfigured();
     return crapi.ramp.confirmOrder(id);
   }
 
@@ -625,6 +639,7 @@ export class Payment {
   async confirmRampSessionOrder(
     id: string
   ): Promise<AsyncResult<typeof crapi.ramp.confirmOrderForSession>> {
+    await this.ensureConfigured();
     return crapi.ramp.confirmOrderForSession(id);
   }
 
@@ -634,6 +649,7 @@ export class Payment {
   async cancelRampOrder(
     id: string
   ): Promise<AsyncResult<typeof crapi.ramp.cancelOrder>> {
+    await this.ensureConfigured();
     return crapi.ramp.cancelOrder(id);
   }
 }

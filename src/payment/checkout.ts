@@ -23,11 +23,11 @@ export class PaymentModalManager {
     const { ChainrailsPaymentModalElement } =
       await import("@chainrails/vanilla");
 
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>((resolve, reject) => {
       const modal = document.createElement(
         ChainrailsPaymentModalElement.tagName
       ) as HTMLElement & {
-        setProps?: (props: {
+        setProps: (props: {
           sessionToken: string;
           amount?: string;
           isOpen?: boolean;
@@ -62,7 +62,17 @@ export class PaymentModalManager {
 
       // always append to dom before setting props
       document.body.appendChild(modal);
-      modal.setProps?.({
+
+      // Validate that setProps exists - without it the modal cannot function
+      if (typeof modal.setProps !== "function") {
+        cleanup();
+        reject(
+          new Error("Chainrails modal element is missing setProps method")
+        );
+        return;
+      }
+
+      modal.setProps({
         sessionToken: input.sessionToken,
         amount: input.amount || "0",
         isOpen: true,
@@ -71,7 +81,12 @@ export class PaymentModalManager {
         onSuccess: () => closeWith(true),
       });
 
-      modal.open();
+      try {
+        modal.open();
+      } catch (error) {
+        cleanup();
+        reject(error);
+      }
     });
   }
 

@@ -8,9 +8,9 @@ export class Session {
     this.parent = paymentModule;
   }
 
-  async create(input: CreatePaymentSessionInput): Promise<Payment> {
+  async create(input: CreatePaymentSessionInput) {
     const result = await crapi.auth.getSessionToken(input);
     this.parent.setSessionToken(result.sessionToken);
-    return this.parent;
+    return result;
   }
 }
